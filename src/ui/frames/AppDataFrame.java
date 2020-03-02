@@ -627,7 +627,7 @@ public class AppDataFrame {
                 }
             }
             mainFrameContentPane.add(appPanel);
-            appPanel.setBounds(0, 0, 1920, 1080);
+            appPanel.setBounds(0, 0, xSize, ySize);
 
             {
                 // compute preferred size
