@@ -11,8 +11,6 @@ public class DB implements IDB {
 
     public static final Logger logger = LoggerFactory.getLogger(DB.class);
     int index;
-    // static final String DB_URL = "jdbc:mysql://127.0.0.1/secitdb";
-    // static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     private String host = "jdbc:mysql://127.0.0.1/secitsolutions";
     private String username = "root";
     private String password = "SecITSolutionsDB2020";

@@ -5,6 +5,7 @@ import database.DB;
 import database.IDB;
 import guiUtils.*;
 import jnetpcap.PcapWrapper;
+import jnetpcap.manager.FlowMgr;
 import jnetpcap.worker.LoadNetworkAdapterWorker;
 import org.jnetpcap.PcapIf;
 
@@ -25,7 +26,7 @@ public class AppDataFrame {
     IDB db=new DB();
     private int pathloaded=0;
     private int adapterloaded=0;
-    private String path1 = "C:\\WORK\\Licenta\\Project\\AppData\\appSetup.txt";
+    private String path1 = FlowMgr.getInstance().getSavePath() + "appSetup.txt";
 
     private JFrame mainFrame;
     private JPanel appPanel;

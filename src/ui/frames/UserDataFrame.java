@@ -4,6 +4,7 @@ import com.jgoodies.forms.factories.Borders;
 import database.DB;
 import database.IDB;
 import guiUtils.ImageRotate;
+import jnetpcap.manager.FlowMgr;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,8 +25,8 @@ public class UserDataFrame {
 
     IDB db = new DB();
     private int completed = 0;
-    private String path1 = "C:\\WORK\\Licenta\\Project\\AppData\\profilePic.txt";
-    private String path2 = "C:\\WORK\\Licenta\\Project\\AppData\\userSetup.txt";
+    private String path1 = FlowMgr.getInstance().getSavePath() +"profilePic.txt";
+    private String path2 = FlowMgr.getInstance().getSavePath() + "userSetup.txt";
     private JFrame mainFrame;
     private JPanel mainPanel;
     private JButton applyChanges_btn;
