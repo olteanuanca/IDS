@@ -1,13 +1,14 @@
-from scripts.data import *
+from pyscripts.data import *
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.impute import SimpleImputer
+import numpy as np
 
 
 def minmax_scaler(dataframe, col_names):
     cols_to_scale = dataframe.columns.difference(['Label'])
     scaler = MinMaxScaler()
     dataframe[cols_to_scale] = scaler.fit_transform(dataframe[cols_to_scale])
-    dataframe = pd.DataFrame(dataframe, columns=col_names)
+    # dataframe = pd.DataFrame(dataframe, columns=col_names)
     return dataframe
 
 
@@ -15,7 +16,7 @@ def std_scaler(dataframe, col_names):
     cols_to_scale = dataframe.columns.difference(['Label'])
     scaler = StandardScaler()
     dataframe[cols_to_scale] = scaler.fit_transform(dataframe[cols_to_scale])
-    dataframe = pd.DataFrame(dataframe, columns=col_names)
+    # dataframe = pd.DataFrame(dataframe, columns=col_names)
     return dataframe
 
 
@@ -36,6 +37,3 @@ def replace_nan(dataframe):
         dataframe[col].replace(to_replace=np.nan, value=mean, inplace=True)
 
     return dataframe
-
-
-
