@@ -36,14 +36,15 @@ LABELS = ['Benign', 'Bot', 'DoS attacks-Hulk', 'DoS attacks-SlowHTTPTest', 'SQL 
 
 CSV_COLUMNS = csv_header.split(sep=",")
 csv_out = 'dataset.csv'
-csv_dir = r'L:\Dataset'
+# csv_dir = r'L:\preprocessed'
+
 csv_localdir = os.getcwd()
 
 
-def mergecsv():
+def mergecsv(csv_dir):
     csv_list = csvlist()
 
-    csv_merge = open(csv_out, 'w')
+    csv_merge = open(csv_dir + '\\'+csv_out, 'w')
     csv_merge.write(csv_header)
     csv_merge.write('\n')
 
@@ -59,7 +60,7 @@ def mergecsv():
     print('Files merged in CSV file : ' + csv_out)
 
 
-def csvlist():
+def csvlist(csv_dir):
     dir_tree = os.walk(csv_dir)
     for dirpath, dirnames, filenames in dir_tree:
         pass
@@ -93,8 +94,8 @@ def create_labeldict(df):
     return labeldict
 
 
-def getcsv(index):
-    csv_list = csvlist()
+def getcsv(index,dataset_dir):
+    csv_list = csvlist(dataset_dir)
     data = pd.read_csv(csv_list[index], low_memory=False)
     # print(data.head())
     return data
