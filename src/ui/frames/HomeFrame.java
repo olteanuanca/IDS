@@ -1,5 +1,6 @@
 package ui.frames;
 
+import com.jgoodies.forms.factories.Borders;
 import guiUtils.ImageRotate;
 import guiUtils.ImageRotateSmall;
 import jnetpcap.BasicFlow;
@@ -8,6 +9,11 @@ import jnetpcap.worker.TrafficFlowWorker;
 import jnetpcap.manager.FlowMgr;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot3D;
+import org.jfree.data.general.DefaultPieDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.InsertCsvRow;
@@ -23,6 +29,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -62,6 +69,33 @@ public class HomeFrame {
     private JLabel status_lbl;
     private JLabel cnt_lbl;
     private JLabel title;
+    private JLabel arr_mi2_lbl;
+
+    //----Notification----
+    private JScrollPane notification_scrollpanel;
+    private JPanel notification_panel;
+
+    //----Protection Status----
+    private JPanel protectionsts_panel;
+    private JLabel circle_lbl;
+    private JLabel bar_lbl;
+    private JLabel lock_lbl;
+
+    //-----Activity------
+
+    private JPanel activity_panel;
+    private JPanel srcip_panel;
+    private JPanel dstip_panel;
+    private JPanel dstport_panel;
+    private JPanel srcport_panel;
+    private JPanel protocol_panel;
+    private JPanel timestamp_panel;
+    private JLabel sts_lbl;
+    private JLabel sts_lbl1;
+    private JLabel sts_lbl2;
+    private JLabel sts_lbl3;
+    private JLabel sts_lbl4;
+    private JLabel sts_lbl5;
 
     public HomeFrame() throws UnsupportedLookAndFeelException, IOException {
 
@@ -164,13 +198,86 @@ public class HomeFrame {
         //  btnSave.setEnabled(true);
     }
 
-    private void menuItem2MouseEntered(MouseEvent e) {
-        submenu2.setVisible(true);
-    }
 
     private void menuItem2MouseClicked(MouseEvent e) {
-        submenu2.setVisible(true);
+        if(submenu2.isShowing()) {
+            arr_mi2_lbl.setIcon(new ImageIcon("src/resources/downarrow32.png"));
+            submenu2.setVisible(false);
+        }
+        else{
+            arr_mi2_lbl.setIcon(new ImageIcon("src/resources/leftarrow32.png"));
+            submenu2.setVisible(true);
+
+        }
     }
+    private void setSrcipchart()
+    {
+        srcip_panel.removeAll();        // clear panel before add new chart
+        srcip_panel.setLayout(new java.awt.CardLayout());
+        srcip_panel.add(loadSrcipchart());
+        srcip_panel.validate();
+    }
+    private ChartPanel loadSrcipchart()
+    {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        dataset.setValue("TV",20);
+        dataset.setValue("DVD",20);
+        dataset.setValue("Mobile phone",40);
+        dataset.setValue("Accessories",10);
+
+        JFreeChart chart =ChartFactory.createPieChart3D("", dataset,true,false,false);
+
+        final PiePlot3D plot = (PiePlot3D) chart.getPlot();
+        plot.setStartAngle(270);
+        plot.setForegroundAlpha(0.60f);
+        plot.setInteriorGap(0.02);
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+
+
+        return chartPanel;
+    }
+    private JLabel add_notification(String txt,int index)
+    {
+        JLabel notif_lbl=new JLabel();
+
+        //---- notif_lbl ----
+        notif_lbl.setBackground(new Color(3, 211, 252,100));
+        notif_lbl.setOpaque(true);
+        notif_lbl.setForeground(Color.white);
+        notif_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
+        TitledBorder tb=new TitledBorder("Notification");
+        tb.setTitleColor(Color.white);
+        tb.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+        notif_lbl.setBorder(new CompoundBorder(
+                tb,
+                Borders.DLU21));
+        notif_lbl.setText(txt);
+
+        notif_lbl.setBounds(100, 100+157*index, 1200, 155);
+        notif_lbl.setVisible(true);
+
+        return notif_lbl;
+    }
+    private void menuItem3MouseClicked(MouseEvent e) {
+        if(notification_scrollpanel.isShowing())
+            notification_scrollpanel.setVisible(false);
+        if(networkFlow_panel.isShowing())
+             networkFlow_panel.setVisible(false);
+        activity_panel.setVisible(true);
+
+    }
+
+
+    private void menuItem5MouseClicked(MouseEvent e) throws IOException {
+       new UserDataFrame();
+
+    }
+
+    private void menuItem6MouseClicked(MouseEvent e) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException, IOException {
+        new AppDataFrame();
+    }
+
 
     private void submenu2MouseExited(MouseEvent e) {
         submenu2.setVisible(false);
@@ -181,10 +288,50 @@ public class HomeFrame {
     }
 
     private void submenu2_btn1MouseClicked(MouseEvent e) {
+        if(notification_scrollpanel.isShowing())
+            notification_scrollpanel.setVisible(false);
+        if(activity_panel.isShowing())
+            activity_panel.setVisible(false);
         submenu2.setVisible(false);
         networkFlow_panel.setVisible(true);
+        setProtectionsts_yellow();
+    }
+    private void menuItem4MouseClicked(MouseEvent e) {
+
+        if(networkFlow_panel.isShowing())
+            networkFlow_panel.setVisible(false);
+        if(activity_panel.isShowing())
+            activity_panel.setVisible(false);
+
+        notification_scrollpanel.setVisible(true);
+        setProtectionsts_red();
     }
 
+    private void setProtectionsts_green()
+    {
+        lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_green124x200.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300.png")));
+
+    }
+    private void setProtectionsts_yellow()
+    {
+        lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_yellow124x200.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_yellow200x200.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_yellow1000x300.png")));
+    }
+    private void setProtectionsts_red()
+    {
+        lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_red124x200.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_red200x200.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_red1000x300.png")));
+    }
+    private void setProtectionsts_pink()
+    {
+        lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_pink124x200.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_pink200x200.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_pink1000x300.png")));
+    }
     private void initComponents() throws IOException {
 
         mainFrame = new JFrame();
@@ -200,6 +347,7 @@ public class HomeFrame {
         logo = new JLabel();
         menuItem1 = new JButton();
         menuItem2 = new JButton();
+        arr_mi2_lbl=new JLabel();
         menuItem3 = new JButton();
         menuItem4 = new JButton();
         menuItem5 = new JButton();
@@ -225,6 +373,33 @@ public class HomeFrame {
         status_lbl = new JLabel();
         cnt_lbl = new JLabel();
         title = new JLabel();
+
+        //-----Notification panel-----
+        notification_panel= new JPanel();
+        notification_scrollpanel=new JScrollPane(notification_panel);
+
+        //-----Protection Status panel----
+        protectionsts_panel=new JPanel();
+        bar_lbl=new JLabel();
+        lock_lbl=new JLabel();
+        circle_lbl=new JLabel();
+
+        //-----Activity panel-----
+        activity_panel=new JPanel();
+        srcip_panel=new JPanel();
+        dstip_panel=new JPanel();
+        dstport_panel=new JPanel();
+        srcport_panel=new JPanel();
+        protocol_panel=new JPanel();
+        timestamp_panel=new JPanel();
+        sts_lbl=new JLabel();
+        sts_lbl1=new JLabel();
+        sts_lbl2=new JLabel();
+        sts_lbl3=new JLabel();
+        sts_lbl4=new JLabel();
+        sts_lbl5=new JLabel();
+
+
 
         //======== mainFrame ========
         {
@@ -288,13 +463,14 @@ public class HomeFrame {
                     public void mouseClicked(MouseEvent e) {
                         menuItem2MouseClicked(e);
                     }
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        menuItem2MouseEntered(e);
-                    }
+
                 });
                 menuPanel.add(menuItem2);
-                menuItem2.setBounds(0, 265, 400, 40);
+                menuItem2.setBounds(0, 265, 363, 40);
+                arr_mi2_lbl.setIcon(new ImageIcon("src/resources/leftarrow32.png"));
+                arr_mi2_lbl.setBounds(363, 265, 32, 32);
+                menuPanel.add(arr_mi2_lbl);
+
 
                 //---- menuItem3 ----
                 menuItem3.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -306,6 +482,13 @@ public class HomeFrame {
                 menuItem3.setIconTextGap(30);
                 menuItem3.setMargin(new Insets(0, 15, 0, 0));
                 menuItem3.setBorderPainted(false);
+                menuItem3.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        menuItem3MouseClicked(e);
+                    }
+
+                });
                 menuPanel.add(menuItem3);
                 menuItem3.setBounds(0, 315, 400, 40);
 
@@ -320,6 +503,12 @@ public class HomeFrame {
                 menuItem4.setMargin(new Insets(0, 15, 0, 0));
                 menuItem4.setIconTextGap(30);
                 menuItem4.setBorderPainted(false);
+                menuItem4.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        menuItem4MouseClicked(e);
+                    }
+                });
                 menuPanel.add(menuItem4);
                 menuItem4.setBounds(0, 365, 400, 40);
 
@@ -333,9 +522,18 @@ public class HomeFrame {
                 menuItem5.setForeground(Color.white);
                 menuItem5.setBackground(new Color(3, 211, 252, 35));
                 menuItem5.setBorderPainted(false);
+                menuItem5.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        try {
+                            menuItem5MouseClicked(e);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
                 menuPanel.add(menuItem5);
                 menuItem5.setBounds(0, 415, 400, 40);
-
                 //---- menuItem6 ----
                 menuItem6.setIcon(new ImageIcon(getClass().getResource("/resources/settings_icon.png")));
                 menuItem6.setHorizontalAlignment(SwingConstants.LEFT);
@@ -346,6 +544,16 @@ public class HomeFrame {
                 menuItem6.setMargin(new Insets(0, 15, 0, 0));
                 menuItem6.setIconTextGap(30);
                 menuItem6.setBorderPainted(false);
+                menuItem6.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        try {
+                            menuItem6MouseClicked(e);
+                        } catch (IOException | ClassNotFoundException | UnsupportedLookAndFeelException | InstantiationException | IllegalAccessException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
                 menuPanel.add(menuItem6);
                 menuItem6.setBounds(0, 465, 400, 40);
 
@@ -420,6 +628,146 @@ public class HomeFrame {
                 mainPanel.add(submenu2);
                 submenu2.setBounds(-10, 265, 260, 235);
 
+                //======== activity_panel ======
+                {
+                activity_panel.setBackground(new Color(3, 211, 252,72));
+                activity_panel.setLayout(null);
+
+                    {
+                        // compute preferred size
+                        Dimension preferredSize = new Dimension();
+                        for(int i = 0; i < activity_panel.getComponentCount(); i++) {
+                            Rectangle bounds = activity_panel.getComponent(i).getBounds();
+                            preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
+                            preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
+                        }
+                        Insets insets = activity_panel.getInsets();
+                        preferredSize.width += insets.right;
+                        preferredSize.height += insets.bottom;
+                        activity_panel.setMinimumSize(preferredSize);
+                        activity_panel.setPreferredSize(preferredSize);
+                    }
+
+                    sts_lbl.setText("Loading ...");
+                    sts_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl.setForeground(Color.white);
+
+                    sts_lbl1.setText("Loading ...");
+                    sts_lbl1.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl1.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl1.setForeground(Color.white);
+
+                    sts_lbl2.setText("Loading ...");
+                    sts_lbl2.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl2.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl2.setForeground(Color.white);
+
+                    sts_lbl3.setText("Loading ...");
+                    sts_lbl3.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl3.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl3.setForeground(Color.white);
+
+                    sts_lbl4.setText("Loading ...");
+                    sts_lbl4.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl4.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl4.setForeground(Color.white);
+
+                    sts_lbl5.setText("Loading ...");
+                    sts_lbl5.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
+                    sts_lbl5.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    sts_lbl5.setForeground(Color.white);
+
+                        //===== srcip_panel =====
+                    srcip_panel.setBackground(new Color(3, 211, 252,72));
+                    srcip_panel.setLayout(null);
+                    TitledBorder tb=new TitledBorder("Source IP");
+                    tb.setTitleColor(Color.white);
+                    tb.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    srcip_panel.setBorder(new CompoundBorder(
+                            tb,
+                            Borders.DLU21));
+                    srcip_panel.add(sts_lbl);
+                    sts_lbl.setBounds(50, 10, 150, 100);
+                    setSrcipchart();
+                    activity_panel.add(srcip_panel);
+                    srcip_panel.setBounds(140, 50, 280, 280);
+
+                        //===== dstip_panel =====
+                    dstip_panel.setBackground(new Color(3, 211, 252,72));
+                    dstip_panel.setLayout(null);
+                    TitledBorder tb1=new TitledBorder("Destination IP");
+                    tb1.setTitleColor(Color.white);
+                    tb1.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    dstip_panel.setBorder(new CompoundBorder(
+                            tb1,
+                            Borders.DLU21));
+                    dstip_panel.add(sts_lbl1);
+                    sts_lbl1.setBounds(50, 10, 150, 100);
+                    activity_panel.add(dstip_panel);
+                    dstip_panel.setBounds(530, 50, 280, 280);
+
+                        //===== protocol_panel =====
+                    protocol_panel.setBackground(new Color(3, 211, 252,72));
+                    protocol_panel.setLayout(null);
+                    TitledBorder tb2=new TitledBorder("Protocol");
+                    tb2.setTitleColor(Color.white);
+                    tb2.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    protocol_panel.setBorder(new CompoundBorder(
+                            tb2,
+                            Borders.DLU21));
+                    protocol_panel.add(sts_lbl2);
+                    sts_lbl2.setBounds(50, 10, 150, 100);
+                    activity_panel.add(protocol_panel);
+                    protocol_panel.setBounds(920, 50, 280, 280);
+
+                    //===== srcport_panel =====
+                    srcport_panel.setBackground(new Color(3, 211, 252,72));
+                    srcport_panel.setLayout(null);
+                    TitledBorder tb3=new TitledBorder("Source Port");
+                    tb3.setTitleColor(Color.white);
+                    tb3.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    srcport_panel.setBorder(new CompoundBorder(
+                            tb3,
+                            Borders.DLU21));
+                    srcport_panel.add(sts_lbl3);
+                    sts_lbl3.setBounds(50, 10, 150, 100);
+                    activity_panel.add(srcport_panel);
+                    srcport_panel.setBounds(140, 350, 280, 280);
+
+                    //===== dstport_panel =====
+                    dstport_panel.setBackground(new Color(3, 211, 252,72));
+                    dstport_panel.setLayout(null);
+                    TitledBorder tb4=new TitledBorder("Destination Port");
+                    tb4.setTitleColor(Color.white);
+                    tb4.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    dstport_panel.setBorder(new CompoundBorder(
+                            tb4,
+                            Borders.DLU21));
+                    dstport_panel.add(sts_lbl4);
+                    sts_lbl4.setBounds(50, 10, 150, 100);
+                    activity_panel.add(dstport_panel);
+                    dstport_panel.setBounds(530, 350, 280, 280);
+
+                    //===== timestamp_panel =====
+                    timestamp_panel.setBackground(new Color(3, 211, 252,72));
+                    timestamp_panel.setLayout(null);
+                    TitledBorder tb5=new TitledBorder("Timestamp");
+                    tb5.setTitleColor(Color.white);
+                    tb5.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
+                    timestamp_panel.setBorder(new CompoundBorder(
+                            tb5,
+                            Borders.DLU21));
+                    timestamp_panel.add(sts_lbl5);
+                    sts_lbl5.setBounds(50, 10, 150, 100);
+                    activity_panel.add(timestamp_panel);
+                    timestamp_panel.setBounds(920, 350, 280, 280);
+
+                    mainPanel.add(activity_panel);
+                    activity_panel.setBounds(50, 220, 1400, 700);
+                    activity_panel.setVisible(false);
+                }
+
                 //======== networkFlow_panel ========
                 {
                     networkFlow_panel.setBackground(new Color(3, 211, 252,72));
@@ -440,18 +788,18 @@ public class HomeFrame {
                         table_panel.setViewportView(table);
                     }
                     networkFlow_panel.add(table_panel);
-                    table_panel.setBounds(50, 30, 1200, 500);
+                    table_panel.setBounds(50, 70, 1300, 600);
 
                     //---- status_lbl ----
                     status_lbl.setForeground(Color.white);
                     networkFlow_panel.add(status_lbl);
-                    status_lbl.setBounds(10, 550, 755, 25);
+                    status_lbl.setBounds(20, 670, 755, 25);
 
                     //---- cnt_lbl ----
                     cnt_lbl.setText("0");
                     cnt_lbl.setForeground(Color.white);
                     networkFlow_panel.add(cnt_lbl);
-                    cnt_lbl.setBounds(1120, 550, 55, cnt_lbl.getPreferredSize().height);
+                    cnt_lbl.setBounds(1150, 670, 55, cnt_lbl.getPreferredSize().height);
 
                     {
                         // compute preferred size
@@ -469,8 +817,70 @@ public class HomeFrame {
                     }
                 }
                 mainPanel.add(networkFlow_panel);
-                networkFlow_panel.setBounds(5, 50, 1300, 600);
+                networkFlow_panel.setBounds(50, 220, 1400, 700);
 
+                //======== protectionsts_panel =======
+
+                protectionsts_panel.setLayout(null);
+                protectionsts_panel.setOpaque(false);
+                lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_green124x200.png")));
+                lock_lbl.setBounds(120, 10, 124, 200);
+                protectionsts_panel.add(lock_lbl);
+
+                circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200.png")));
+                circle_lbl.setBounds(1100, 10, 400, 200);
+                protectionsts_panel.add(circle_lbl);
+
+                bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300.png")));
+                bar_lbl.setBounds(180, -134, 1000, 500);
+                protectionsts_panel.add(bar_lbl);
+
+
+
+
+
+                mainPanel.add(protectionsts_panel);
+                protectionsts_panel.setBounds(50, 10, 1400, 200);
+                //======== notification_panel ========
+                {
+                    notification_panel.setBackground(new Color(3, 211, 252, 72));
+                    //notification_panel.setVisible(true);
+                    notification_panel.setLayout(null);
+
+
+                    {
+                        // compute preferred size
+                        Dimension preferredSize = new Dimension();
+                        for(int i = 0; i < notification_panel.getComponentCount(); i++) {
+                            Rectangle bounds = notification_panel.getComponent(i).getBounds();
+                            preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
+                            preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
+                        }
+                        Insets insets = notification_panel.getInsets();
+                        preferredSize.width += insets.right;
+                        preferredSize.height += insets.bottom;
+                        notification_panel.setMinimumSize(preferredSize);
+                        notification_panel.setPreferredSize(preferredSize);
+                    }
+
+                    notification_scrollpanel.setBackground(new Color(3, 211, 252, 72));
+                    notification_scrollpanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                    notification_scrollpanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                    notification_scrollpanel.setViewportView(notification_panel);
+                    mainPanel.add(notification_scrollpanel);
+                    notification_scrollpanel.setBounds(50, 220, 1400, 700);
+
+
+                    notification_scrollpanel.add(add_notification("Notification demo",0));
+                    notification_scrollpanel.add(add_notification("Notification demo",1));
+//                    notification_scrollpanel.add(add_notification("Notification demo",2));
+//                    notification_scrollpanel.add(add_notification("Notification demo",3));
+//                    notification_scrollpanel.add(add_notification("Notification demo",4));
+//                    notification_scrollpanel.add(add_notification("Notification demo",5));
+//                    notification_scrollpanel.add(add_notification("Notification demo",6));
+
+                    notification_scrollpanel.setVisible(false);
+                }
                 {
                     // compute preferred size
                     Dimension preferredSize = new Dimension();
@@ -489,7 +899,8 @@ public class HomeFrame {
             mainFrameContentPane.add(mainPanel);
             mainPanel.setBounds(400, 0, xSize-400, ySize);
 
-            {
+
+                {
                 // compute preferred size
                 Dimension preferredSize = new Dimension();
                 for(int i = 0; i < mainFrameContentPane.getComponentCount(); i++) {
@@ -508,5 +919,7 @@ public class HomeFrame {
         }
 
     }
+
+
 
 }
