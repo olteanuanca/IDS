@@ -1,0 +1,36 @@
+===== knnsimple =====
+
+dataset (preprocessing)
++binary labels,
++dropped 'timestamp','dst port','src port','flow id','dst ip','src ip'
++float
++replaced nan and inf with mean value
++round - 3 dec
++standard scaled
+
+-----------------------
+
+[[2682707   13900]
+ [  23586  526734]]
+              precision    recall  f1-score   support
+
+           0       0.99      0.99      0.99   2696607
+           1       0.97      0.96      0.97    550320
+
+    accuracy                           0.99   3246927
+   macro avg       0.98      0.98      0.98   3246927
+weighted avg       0.99      0.99      0.99   3246927
+
+Accuracy: 0.9884549298459744
+
+=====  svm  ======
+
+dataset (preprocessing)
++binary labels,
++dropped 'timestamp','dst port','src port','flow id','dst ip','src ip'
++float
++replaced nan and inf with mean value
++round - 3 dec
++standard scaled
+
+-----------------------
