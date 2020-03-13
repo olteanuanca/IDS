@@ -20,6 +20,7 @@ public class ImageRotate extends JLabel {
     }
     @Override
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
         BufferedImage  img=null;
         try {
              img = LoadImage(path);

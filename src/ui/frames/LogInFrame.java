@@ -5,6 +5,7 @@ package ui.frames;
 //import database.IDB;
 //import utils.PasswordUtils;
 import com.jgoodies.forms.factories.Borders;
+import guiUtils.AlphaContainer;
 import guiUtils.ImageRotate;
 import utils.PasswordUtils;
 
@@ -123,8 +124,11 @@ public class LogInFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.drawImage(panelBackground, 0, 0, null);
+
+
             }
         };
+
 
         username_txtField = new JTextField();
         password_txtField = new JPasswordField();
@@ -134,6 +138,7 @@ public class LogInFrame {
         title = new JLabel();
         frameTitle_lbl=new JLabel();
         passwordinfo_lbl = new JLabel();
+
         usernameinfo_lbl = new JLabel();
         usernametxtInfo_lbl = new JLabel();
         passwordtxtInfo_lbl = new JLabel();
@@ -157,6 +162,7 @@ public class LogInFrame {
                 credentialsPanel.setBorder(new MatteBorder(1, 1, 1, 1, Color.black));
                 credentialsPanel.setSize(new Dimension(1920, 1080));
                 credentialsPanel.setLayout(null);
+                credentialsPanel.setOpaque(false);
 
                 ImageRotate logo=new ImageRotate();
                 logo.setBounds(30, -80, 800, 800);
@@ -217,7 +223,7 @@ public class LogInFrame {
                 usernameinfo_lbl.setBounds(1515, 430, 35, 34);
 
                 //---- usernametxtInfo_lbl ----
-                usernametxtInfo_lbl.setBackground(new Color(3, 211, 252,72));
+                usernametxtInfo_lbl.setBackground(new Color(130, 166, 224));
                 usernametxtInfo_lbl.setOpaque(true);
                 usernametxtInfo_lbl.setForeground(Color.white);
                 usernametxtInfo_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -233,7 +239,7 @@ public class LogInFrame {
                 usernametxtInfo_lbl.setVisible(false);
 
                 //---- passwordtxtInfo_lbl ----
-                passwordtxtInfo_lbl.setBackground(new Color(3, 211, 252, 72));
+                passwordtxtInfo_lbl.setBackground(new Color(130, 166, 224));
                 passwordtxtInfo_lbl.setOpaque(true);
                 passwordtxtInfo_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
                 passwordtxtInfo_lbl.setForeground(Color.white);
@@ -243,6 +249,7 @@ public class LogInFrame {
                         Borders.DLU21));
 
                 credentialsPanel.add(passwordtxtInfo_lbl);
+
                 passwordtxtInfo_lbl.setBounds(1155, 650, 655, 255);
                 passwordtxtInfo_lbl.setVisible(false);
 
@@ -288,7 +295,7 @@ public class LogInFrame {
                         tb2,
                         Borders.DLU21));
                 credentialsPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(1135, 650, 655, 255);
+                errtxt_lbl.setBounds(xSize-1800, ySize-430, (int) (xSize/2.93), (int)(ySize/4.23));
                 errtxt_lbl.setVisible(false);
 
 

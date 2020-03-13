@@ -1,10 +1,7 @@
 import jnetpcap.manager.FlowMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ui.frames.AppDataFrame;
-import ui.frames.HomeFrame;
-import ui.frames.SignUpFrame;
-import ui.frames.UserDataFrame;
+import ui.frames.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +16,7 @@ public class Main {
                 //  new SignUpFrame();
                 // new LogInFrame();
                 //new AppDataFrame();
-                // new UserDataFrame();
+                 //new UserDataFrame();
                 new HomeFrame();
 
 

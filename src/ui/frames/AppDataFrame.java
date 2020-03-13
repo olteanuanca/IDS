@@ -356,7 +356,7 @@ public class AppDataFrame {
                 folderPath_txtField.setOpaque(false);
                 folderPath_txtField.setForeground(Color.white);
                 folderPath_txtField.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
-                folderPath_txtField.setText("<html>&emsp;Select directory path to save network flows</html>");
+                folderPath_txtField.setText("Select directory path to save network flows");
                 appPanel.add(folderPath_txtField);
                 folderPath_txtField.setBounds(800, 280, 880, 40);
 
@@ -594,11 +594,11 @@ public class AppDataFrame {
                         tb2,
                         Borders.DLU21));
                 appPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(900, 650, 655, 255);
+                errtxt_lbl.setBounds(xSize-1800, ySize-430, (int) (xSize/2.93), (int)(ySize/4.23));
                errtxt_lbl.setVisible(false);
 
                 //---- infotxt_lbl ----
-                infotxt_lbl.setBackground(new Color(3, 211, 252,72));
+                infotxt_lbl.setBackground(new Color(2, 210, 255,150));
                 infotxt_lbl.setOpaque(true);
                 infotxt_lbl.setForeground(Color.white);
                 infotxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
