@@ -9,15 +9,18 @@ import java.io.IOException;
 
 public class Main {
     public static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+
     public static void main(String[] args) throws IOException, ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         EventQueue.invokeLater(() -> {
             try {
-                FlowMgr.getInstance().init();
-                //  new SignUpFrame();
+              FlowMgr.getInstance().init();
+                 // new SignUpFrame();
                 // new LogInFrame();
                 //new AppDataFrame();
                  //new UserDataFrame();
                 new HomeFrame();
+                //Client x=new Client();
 
 
             } catch (Exception e) {
