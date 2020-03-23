@@ -22,6 +22,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -69,8 +70,8 @@ public class LogInFrame {
 
         if(check==0)
           {
-              //        new AppDataFrame();
-              //        mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+                      new UserDataFrame();
+                      mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
           }
         else
         {
@@ -86,20 +87,36 @@ public class LogInFrame {
 
     private void usernameinfo_lblMouseEntered(MouseEvent e) {
         usernameinfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         usernametxtInfo_lbl.setVisible(true);
     }
 
     private void usernameinfo_lblMouseExited(MouseEvent e) {
         usernameinfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(1100, 650, 655, 255);
+        }
         usernametxtInfo_lbl.setVisible(false);
     }
     private void passwordinfo_lblMouseEntered(MouseEvent e) {
         passwordinfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         passwordtxtInfo_lbl.setVisible(true);
     }
 
     private void passwordinfo_lblMouseExited(MouseEvent e) {
         passwordinfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(1100, 650, 655, 255);
+        }
         passwordtxtInfo_lbl.setVisible(false);
     }
 
@@ -149,13 +166,16 @@ public class LogInFrame {
 
         //======== mainFrame ========
         {
+            ImageIcon img = new ImageIcon("src/resources/logo_border_small.jpg");
+            mainFrame.setIconImage(img.getImage());
+            mainFrame.setTitle("SecIT Solutions");
+
             var mainFrameContentPane = mainFrame.getContentPane();
             mainFrameContentPane.setLayout(null);
             Toolkit tk = Toolkit.getDefaultToolkit();
             int xSize = ((int) tk.getScreenSize().getWidth());
             int ySize = ((int) tk.getScreenSize().getHeight());
             mainFrame.setSize(xSize,ySize);
-            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
 
             //======== credentialsPanel ========
             {
@@ -235,7 +255,7 @@ public class LogInFrame {
                         tb,
                         Borders.DLU21));
                 credentialsPanel.add(usernametxtInfo_lbl);
-                usernametxtInfo_lbl.setBounds(1155, 650, 655, 255);
+                usernametxtInfo_lbl.setBounds(1100, 650, 655, 255);
                 usernametxtInfo_lbl.setVisible(false);
 
                 //---- passwordtxtInfo_lbl ----
@@ -250,7 +270,7 @@ public class LogInFrame {
 
                 credentialsPanel.add(passwordtxtInfo_lbl);
 
-                passwordtxtInfo_lbl.setBounds(1155, 650, 655, 255);
+                passwordtxtInfo_lbl.setBounds(1100, 650, 655, 255);
                 passwordtxtInfo_lbl.setVisible(false);
 
                 //---- showpass_lbl ----
@@ -284,7 +304,7 @@ public class LogInFrame {
                 enterpassword_lbl.setBounds(1120, 495, 135, 30);
 
                 //---- errtxt_lbl ----
-                errtxt_lbl.setBackground(new Color(255, 23, 45, 72));
+                errtxt_lbl.setBackground(new Color(255, 102, 135));
                 errtxt_lbl.setOpaque(true);
                 errtxt_lbl.setForeground(Color.white);
                 errtxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -295,7 +315,7 @@ public class LogInFrame {
                         tb2,
                         Borders.DLU21));
                 credentialsPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(xSize-1800, ySize-430, (int) (xSize/2.93), (int)(ySize/4.23));
+                errtxt_lbl.setBounds(1100, 650, 655, 255);
                 errtxt_lbl.setVisible(false);
 
 
@@ -326,7 +346,7 @@ public class LogInFrame {
                 frameTitle_lbl.setFont(new Font("JetBrains Mono", Font.PLAIN, 70));
 
                 //---- logo ----
-                title.setIcon(new ImageIcon("src/resources/title_transp_small.png"));
+                title.setIcon(new ImageIcon("src/resources/title_transp.png"));
                 credentialsPanel.add(title);
                 title.setBounds(70, 300, 990, 403);
 
@@ -363,7 +383,8 @@ public class LogInFrame {
                 mainFrameContentPane.setPreferredSize(preferredSize);
             }
             mainFrame.pack();
-            mainFrame.setLocationRelativeTo(mainFrame.getOwner());
+            mainFrame.setResizable(false);
+            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
 
     }

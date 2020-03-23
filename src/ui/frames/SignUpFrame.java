@@ -49,6 +49,8 @@ public class SignUpFrame {
     private JLabel enterusername_lbl;
     private JLabel enterpassword_lbl;
     private JLabel errtxt_lbl;
+    private int passerr=0;
+    private int usererr=0;
     public SignUpFrame() throws IOException {
 
         initComponents();
@@ -59,7 +61,6 @@ public class SignUpFrame {
     {
         if(txt.length()<lwBound || txt.length()>upBound)
         {
-            //TODO passlen
             return 1;
         }
 
@@ -75,19 +76,16 @@ public class SignUpFrame {
         matches = !txt.equals(txt.toLowerCase());
         if(!matches)
         {
-        //TODO lowercase
         return 1;
         }
         matches= !txt.equals(txt.toUpperCase());
         if(matches==false)
         {
-            //TODO uppercase
             return 2;
         }
         matches= Pattern.matches(no, txt);
         if(matches==false)
         {
-            //TODO numbers
          return 3;
         }
         return 0;
@@ -101,7 +99,6 @@ public class SignUpFrame {
             matches= Pattern.matches(spch,txt);
             if(matches==true)
             {
-                //TODO spch
                 return 1;
             }
         }
@@ -110,10 +107,8 @@ public class SignUpFrame {
                matches= Pattern.matches(spch,txt);
                if(matches==false)
                {
-                   //TODO spch
                    return 1;
                }}
-
 
         return 0;
     }
@@ -123,10 +118,12 @@ public class SignUpFrame {
 
         int check;
         if(username_txtField.getText().length()!=0)
-        {check=lenChk(username_txtField.getText(),32,8);
+        {
+            check=lenChk(username_txtField.getText(),32,8);
         if(check==1)
         {
             errtxt+="Username must be between 8 and 32 characters long.<br/>";
+            usererr=1;
         }
 
         check=casenoChk(username_txtField.getText());
@@ -135,17 +132,20 @@ public class SignUpFrame {
         {
             case 1:
             {
-                    errtxt+="Username must contain at least one lower case letter.<br/>";
+                    errtxt+="Username must contain at least one upper case letter.<br/>";
+                    usererr=1;
                 break;
             }
             case 2:
             {
-                errtxt+="Username must contain at least one upper case letter.<br/>";
+                errtxt+="Username must contain at least one lower case letter.<br/>";
+                usererr=1;
                 break;
             }
             case 3:
             {
                 errtxt+="Username must contain at least one number.<br/>";
+                usererr=1;
                 break;
             }
             default:
@@ -159,17 +159,21 @@ public class SignUpFrame {
         if(check==1)
         {
             errtxt+="Username can't contain special characters, except dashes (-), underscores (_) and periods (.).<br/>";
+            usererr=1;
         }
 }
         else{
             errtxt+="You must complete username field.<br/>";
+            usererr=1;
         }
 
         if(String.valueOf(password_txtField.getPassword()).length()!=0)
-       { check=lenChk(String.valueOf(password_txtField.getPassword()),32,8);
+       {
+           check=lenChk(String.valueOf(password_txtField.getPassword()),32,8);
         if(check==1)
         {
             errtxt+="Password must be between 8 and 32 characters long.<br/>";
+            passerr=1;
         }
 
         check=casenoChk(String.valueOf(password_txtField.getPassword()));
@@ -179,16 +183,19 @@ public class SignUpFrame {
             case 1:
             {
                 errtxt+="Password must contain at least one lower case letter.<br/>";
+                passerr=1;
                 break;
             }
             case 2:
             {
                 errtxt+="Password must contain at least one upper case letter.<br/>";
+                passerr=1;
                 break;
             }
             case 3:
             {
                 errtxt+="Password must contain at least one number.<br/>";
+                passerr=1;
                 break;
             }
             default:
@@ -202,15 +209,23 @@ public class SignUpFrame {
         if(check==1)
         {
             errtxt+="Password must contain at least one special character.<br/>";
+            passerr=1;
         }
        }
         else
         {
             errtxt+="You must complete password field.<br/>";
+            passerr=1;
         }
 
         if(errtxt.equals("<html>"))
         {
+            username_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            username_txtField.setForeground(Color.white);
+            password_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            showpass_lbl.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            password_txtField.setForeground(Color.white);
+
             errtxt_lbl.setVisible(false);
                     String salt = PasswordUtils.getSalt(30);
 
@@ -224,9 +239,23 @@ public class SignUpFrame {
         }
         else
         {
+
             errtxt+="</html>";
             errtxt_lbl.setText(errtxt);
             errtxt_lbl.setVisible(true);
+
+            if(usererr==1)
+            {
+                username_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                username_txtField.setForeground(Color.red);
+            }
+            if(passerr==1)
+            {
+                password_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                showpass_lbl.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                password_txtField.setForeground(Color.red);
+
+            }
             return;
         }
 
@@ -234,21 +263,40 @@ public class SignUpFrame {
 
     private void usernameinfo_lblMouseEntered(MouseEvent e) {
         usernameinfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         usernametxtInfo_lbl.setVisible(true);
+
     }
 
     private void usernameinfo_lblMouseExited(MouseEvent e) {
         usernameinfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(1100, 650, 655, 255);
+        }
+
         usernametxtInfo_lbl.setVisible(false);
     }
+
     private void passwordinfo_lblMouseEntered(MouseEvent e) {
         passwordinfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         passwordtxtInfo_lbl.setVisible(true);
     }
 
     private void passwordinfo_lblMouseExited(MouseEvent e) {
         passwordinfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         passwordtxtInfo_lbl.setVisible(false);
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(1100, 650, 655, 255);
+        }
     }
 
     private void showpass_lblMousePressed(MouseEvent e) {
@@ -293,13 +341,17 @@ public class SignUpFrame {
 
         //======== mainFrame ========
         {
+            ImageIcon img = new ImageIcon("src/resources/logo_border_small.jpg");
+            mainFrame.setIconImage(img.getImage());
+            mainFrame.setTitle("SecIT Solutions");
+
             var mainFrameContentPane = mainFrame.getContentPane();
             mainFrameContentPane.setLayout(null);
             Toolkit tk = Toolkit.getDefaultToolkit();
             int xSize = ((int) tk.getScreenSize().getWidth());
             int ySize = ((int) tk.getScreenSize().getHeight());
             mainFrame.setSize(xSize,ySize);
-            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
 
             //======== credentialsPanel ========
             {
@@ -366,7 +418,7 @@ public class SignUpFrame {
                 usernameinfo_lbl.setBounds(1515, 430, 35, 34);
 
                 //---- usernametxtInfo_lbl ----
-                usernametxtInfo_lbl.setBackground(new Color(3, 211, 252,72));
+                usernametxtInfo_lbl.setBackground(new Color(130, 166, 224));
                 usernametxtInfo_lbl.setOpaque(true);
                 usernametxtInfo_lbl.setForeground(Color.white);
                 usernametxtInfo_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -378,11 +430,11 @@ public class SignUpFrame {
                         tb,
                        Borders.DLU21));
                 credentialsPanel.add(usernametxtInfo_lbl);
-                usernametxtInfo_lbl.setBounds(1155, 650, 655, 255);
+                usernametxtInfo_lbl.setBounds(1100, 650, 655, 255);
                 usernametxtInfo_lbl.setVisible(false);
 
                 //---- passwordtxtInfo_lbl ----
-                passwordtxtInfo_lbl.setBackground(new Color(3, 211, 252, 72));
+                passwordtxtInfo_lbl.setBackground(new Color(130, 166, 224));
                 passwordtxtInfo_lbl.setOpaque(true);
                 passwordtxtInfo_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
                 passwordtxtInfo_lbl.setForeground(Color.white);
@@ -392,7 +444,7 @@ public class SignUpFrame {
                         Borders.DLU21));
 
                 credentialsPanel.add(passwordtxtInfo_lbl);
-                passwordtxtInfo_lbl.setBounds(1155, 650, 655, 255);
+                passwordtxtInfo_lbl.setBounds(1100, 650, 655, 255);
                 passwordtxtInfo_lbl.setVisible(false);
 
                 //---- showpass_lbl ----
@@ -426,7 +478,7 @@ public class SignUpFrame {
                 enterpassword_lbl.setBounds(1120, 495, 135, 30);
 
                 //---- errtxt_lbl ----
-                errtxt_lbl.setBackground(new Color(255, 23, 45, 72));
+                errtxt_lbl.setBackground(new Color(255, 102, 135));
                 errtxt_lbl.setOpaque(true);
                 errtxt_lbl.setForeground(Color.white);
                 errtxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -437,7 +489,7 @@ public class SignUpFrame {
                         tb2,
                         Borders.DLU21));
                 credentialsPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(1135, 650, 655, 255);
+                errtxt_lbl.setBounds(1100, 650, 655, 255);
                 errtxt_lbl.setVisible(false);
 
 
@@ -505,7 +557,8 @@ public class SignUpFrame {
                 mainFrameContentPane.setPreferredSize(preferredSize);
             }
             mainFrame.pack();
-            mainFrame.setLocationRelativeTo(mainFrame.getOwner());
+            mainFrame.setResizable(false);
+            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
 
     }

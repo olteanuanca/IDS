@@ -52,7 +52,7 @@ public class HomeFrame {
     private ExecutorService csvWriterThread;
     private DefaultTableModel tableModel;
     private String path1 =  FlowMgr.getInstance().getSavePath() + "appSetup.txt";
-
+    private int activityNext=0;
     // === frames ===
     private JFrame mainFrame;
 
@@ -116,13 +116,6 @@ public class HomeFrame {
     private JLabel sts_lbl4;
     private JLabel sts_lbl5;
 
-    private JLabel chartsip_lbl;
-    private JLabel chartsp_lbl;
-    private JLabel chartdip_lbl;
-    private JLabel chartdp_lbl;
-    private JLabel chartprot_lbl;
-    private JLabel charttim_lbl;
-
     private JLabel srcip_leglbl;
     private JLabel dstip_leglbl;
     private JLabel dstport_leglbl;
@@ -130,6 +123,7 @@ public class HomeFrame {
     private JLabel protocol_leglbl;
     private JLabel timestamp_leglbl;
 
+    private JLabel procent_lbl;
     //=== buttons ===
     private JButton menuItem1;
     private JButton menuItem2;
@@ -137,6 +131,7 @@ public class HomeFrame {
     private JButton menuItem4;
     private JButton menuItem5;
     private JButton menuItem6;
+    private JButton activitynext_btn;
 
     private JButton submenu2_btn1;
 
@@ -296,6 +291,7 @@ public class HomeFrame {
 
     /* Show item 3 (ACTIVITY)*/
     private void menuItem3MouseClicked(MouseEvent e) throws AWTException {
+        setProtectionsts_green();
         if (SystemTray.isSupported()) {
             WinNotifications td = new WinNotifications();
             td.displayNotif("Test","Notification test");
@@ -307,8 +303,12 @@ public class HomeFrame {
 
         if(srcip_list.stream().distinct().collect(Collectors.toList()).size()>30)
             resetActivityCharts();
-
-
+        if(srcport_list.stream().distinct().collect(Collectors.toList()).size()>30)
+            resetActivityCharts();
+        if(dstip_list.stream().distinct().collect(Collectors.toList()).size()>30)
+            resetActivityCharts();
+        if(dstport_list.stream().distinct().collect(Collectors.toList()).size()>30)
+            resetActivityCharts();
 
         if(chartData_ready==0)
         {
@@ -330,11 +330,34 @@ public class HomeFrame {
             createLoadingCharts();
 
             activity_panel.add(srcip_panel);
+            srcip_panel.setVisible(false);
             activity_panel.add(dstip_panel);
+            dstip_panel.setVisible(false);
             activity_panel.add(protocol_panel);
+            protocol_panel.setVisible(false);
             activity_panel.add(srcport_panel);
+            srcport_panel.setVisible(false);
             activity_panel.add(timestamp_panel);
+            timestamp_panel.setVisible(false);
             activity_panel.add(dstport_panel);
+            dstport_panel.setVisible(false);
+
+            if(activityNext==0)
+            {
+                srcip_panel.setVisible(true);
+                srcport_panel.setVisible(true);
+
+            }
+            else if(activityNext==1)
+            {
+                dstip_panel.setVisible(true);
+                dstport_panel.setVisible(true);
+            }
+            else if(activityNext==2)
+            {
+                timestamp_panel.setVisible(true);
+                protocol_panel.setVisible(true);
+            }
 
         }
         else
@@ -369,36 +392,56 @@ public class HomeFrame {
 
             createActivityCharts();
 
+
             activity_panel.add(srcip_chart);
-            srcip_chart.setBounds(140, 50, 280, 280);
-            activity_panel.add(chartsip_lbl);
-            chartsip_lbl.setBounds(422, 170, 64, 64);
+            srcip_chart.setBounds(20, 50, 280, 280);
+            srcip_chart.setVisible(false);
+
 
             activity_panel.add(dstip_chart);
-            dstip_chart.setBounds(530, 50, 280, 280);
-            activity_panel.add(chartdip_lbl);
-            chartdip_lbl.setBounds(812, 170, 64, 64);
+            dstip_chart.setBounds(20, 50, 280, 280);
+            dstip_chart.setVisible(false);
+
 
             activity_panel.add(protocol_chart);
-            protocol_chart.setBounds(920, 50, 280, 280);
-            activity_panel.add(chartprot_lbl);
-            chartprot_lbl.setBounds(1202, 160, 64, 64);
+            protocol_chart.setBounds(20, 50, 280, 280);
+            protocol_chart.setVisible(false);
+
 
             activity_panel.add(srcport_chart);
-            srcport_chart.setBounds(140, 350, 280, 280);
-            activity_panel.add(chartsp_lbl);
-            chartsp_lbl.setBounds(422, 460, 64, 64);
+            srcport_chart.setBounds(620, 50, 280, 280);
+            srcport_chart.setVisible(false);
 
             activity_panel.add(timestamp_chart);
-            timestamp_chart.setBounds(920, 350, 280, 280);
-            activity_panel.add(charttim_lbl);
-            charttim_lbl.setBounds(1202, 460, 64, 64);
+            timestamp_chart.setBounds(620, 50, 280, 280);
+            timestamp_chart.setVisible(false);
+
 
             activity_panel.add(dstport_chart);
-            dstport_chart.setBounds(530, 350, 280, 280);
-            activity_panel.add(chartdp_lbl);
-            chartdp_lbl.setBounds(812, 460, 64, 64);
+            dstport_chart.setBounds(620, 50, 280, 280);
+            dstport_chart.setVisible(false);
 
+            if(activityNext==0)
+            {
+                srcip_chart.setVisible(true);
+                srcip_leglbl.setVisible(true);
+                srcport_chart.setVisible(true);
+                srcport_leglbl.setVisible(true);
+            }
+            else if(activityNext==1)
+            {
+                dstip_chart.setVisible(true);
+                dstip_leglbl.setVisible(true);
+                dstport_chart.setVisible(true);
+                dstport_leglbl.setVisible(true);
+            }
+            else if(activityNext==2)
+            {
+                timestamp_chart.setVisible(true);
+                timestamp_leglbl.setVisible(true);
+                protocol_chart.setVisible(true);
+                protocol_leglbl.setVisible(true);
+            }
         }
         activity_panel.setVisible(true);
     }
@@ -453,21 +496,23 @@ public class HomeFrame {
     private void setProtectionsts_green()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_green124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200.png")));
-        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300.png")));
-
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200txt.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300txt.png")));
+        procent_lbl.setText("100%");
     }
     private void setProtectionsts_yellow()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_yellow124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_yellow200x200.png")));
-        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_yellow1000x300.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_yellow200x200txt.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_yellow1000x300txt.png")));
+        //procent_lbl.setText("50%");
     }
     private void setProtectionsts_red()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_red124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_red200x200.png")));
-        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_red1000x300.png")));
+        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_red200x200txt.png")));
+        bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_red1000x300txt.png")));
+        //procent_lbl.setText("10%");
     }
     private void setProtectionsts_pink()
     {
@@ -521,7 +566,7 @@ public class HomeFrame {
             srcip_panel.add(sts_lbl);
             sts_lbl.setBounds(50, 10, 150, 100);
 
-            srcip_panel.setBounds(140, 50, 280, 280);}
+            srcip_panel.setBounds(250, 170, 280, 280);}
 
         //===== dstip_panel =====
         { dstip_panel.setBackground(new Color(3, 21, 64));
@@ -535,7 +580,7 @@ public class HomeFrame {
             dstip_panel.add(sts_lbl1);
             sts_lbl1.setBounds(50, 10, 150, 100);
 
-            dstip_panel.setBounds(530, 50, 280, 280);}
+            dstip_panel.setBounds(250, 170, 280, 280);}
 
         //===== protocol_panel =====
         { protocol_panel.setBackground(new Color(3, 21, 64));
@@ -549,7 +594,7 @@ public class HomeFrame {
             protocol_panel.add(sts_lbl2);
             sts_lbl2.setBounds(50, 10, 150, 100);
 
-            protocol_panel.setBounds(920, 50, 280, 280);}
+            protocol_panel.setBounds(250, 170, 280, 280);}
 
         //===== srcport_panel =====
         { srcport_panel.setBackground(new Color(3, 21, 64));
@@ -562,7 +607,7 @@ public class HomeFrame {
                     Borders.DLU21));
             srcport_panel.add(sts_lbl3);
             sts_lbl3.setBounds(50, 10, 150, 100);
-            srcport_panel.setBounds(140, 350, 280, 280);}
+            srcport_panel.setBounds(770, 170, 280, 280);}
 
         //===== dstport_panel =====
         { dstport_panel.setBackground(new Color(3, 21, 64));
@@ -576,7 +621,7 @@ public class HomeFrame {
             dstport_panel.add(sts_lbl4);
             sts_lbl4.setBounds(50, 10, 150, 100);
 
-            dstport_panel.setBounds(530, 350, 280, 280);}
+            dstport_panel.setBounds(770, 170, 280, 280);}
 
         //===== timestamp_panel =====
         {timestamp_panel.setBackground(new Color(3, 21, 64));
@@ -590,7 +635,7 @@ public class HomeFrame {
             timestamp_panel.add(sts_lbl5);
             sts_lbl5.setBounds(50, 10, 150, 100);
 
-            timestamp_panel.setBounds(920, 350, 280, 280);}
+            timestamp_panel.setBounds(770, 170, 280, 280);}
     }
     private void createActivityCharts()
     {
@@ -676,82 +721,6 @@ public class HomeFrame {
         timestamp_chart=new BarChartPanel(timestamp_cnt,timestamp_id,"Timestamp IP",141, 199, 240);
 
 
-        {
-            chartsip_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64.png")));
-            chartsip_lbl.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                chartsip_lblMouseEntered(e);
-            }
-            @Override
-            public void mouseExited(MouseEvent e) {
-                chartsip_lblMouseExited(e);
-            }
-            });
-
-
-
-            chartsp_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64.png")));
-            chartsp_lbl.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    chartsp_lblMouseEntered(e);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    chartsp_lblMouseExited(e);
-                }
-            });
-
-            chartdip_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64black.png")));
-            chartdip_lbl.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    chartdip_lblMouseEntered(e);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    chartdip_lblMouseExited(e);
-                }
-            });
-
-            chartdp_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64.png")));
-            chartdp_lbl.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    chartdp_lblMouseEntered(e);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    chartdp_lblMouseExited(e);
-                }
-            });
-
-            chartprot_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64.png")));
-            chartprot_lbl.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    chartprot_lblMouseEntered(e);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    chartprot_lblMouseExited(e);
-                }
-            });
-
-            charttim_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/result64.png")));
-            charttim_lbl.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    charttim_lblMouseEntered(e);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    charttim_lblMouseExited(e);
-                }
-            });
-        }
-
         TitledBorder tb1=new TitledBorder("Legend SOURCE IP");
         tb1.setTitleColor(Color.white);
         /*Create Source IP text*/
@@ -759,7 +728,7 @@ public class HomeFrame {
 
         for(int i=0;i<srcip_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=srcip_id[i]+ " " + srcip_legend[i] + "<br/>";
+            tmp+=srcip_id[i]+ ".&emsp;&emsp;" + srcip_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + srcip_cnt[i] +"<br/>";
         }
         tmp+="</html>";
 
@@ -770,7 +739,7 @@ public class HomeFrame {
         srcip_leglbl.setText(tmp);
         srcip_leglbl.setBorder(new CompoundBorder(tb1,Borders.DLU21));
         activity_panel.add(srcip_leglbl);
-        srcip_leglbl.setBounds(530, 60, 280, 500);
+        srcip_leglbl.setBounds(320, 55, 280, 500);
         srcip_leglbl.setVisible(false);
 
         TitledBorder tb2=new TitledBorder("Legend SOURCE PORT");
@@ -779,7 +748,7 @@ public class HomeFrame {
 
         for(int i=0;i<srcport_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=srcport_id[i]+ " " + srcport_legend[i] + "<br/>";
+            tmp+=srcport_id[i]+ ".&emsp;&emsp;" + srcport_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + srcport_cnt[i] + "<br/>";
         }
         tmp+="</html>";
         srcport_leglbl.setBackground(new Color(41, 101, 196));
@@ -789,7 +758,7 @@ public class HomeFrame {
         srcport_leglbl.setText(tmp);
         srcport_leglbl.setBorder(new CompoundBorder(tb2,Borders.DLU21));
         activity_panel.add(srcport_leglbl);
-        srcport_leglbl.setBounds(530, 60, 280, 500);
+        srcport_leglbl.setBounds(920, 55, 280, 500);
         srcport_leglbl.setVisible(false);
 
         TitledBorder tb3=new TitledBorder("Legend DESTINATION IP");
@@ -798,7 +767,7 @@ public class HomeFrame {
 
         for(int i=0;i<dstip_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=dstip_id[i]+ " " + dstip_legend[i] + "<br/>";
+            tmp+=dstip_id[i]+ ".&emsp;&emsp;" + dstip_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + dstip_cnt[i]+ "<br/>";
         }
         tmp+="</html>";
 
@@ -809,7 +778,7 @@ public class HomeFrame {
         dstip_leglbl.setText(tmp);
         dstip_leglbl.setBorder(new CompoundBorder(tb3,Borders.DLU21));
         activity_panel.add(dstip_leglbl);
-        dstip_leglbl.setBounds(920, 60, 280, 500);
+        dstip_leglbl.setBounds(320, 55, 280, 500);
         dstip_leglbl.setVisible(false);
 
 
@@ -819,7 +788,7 @@ public class HomeFrame {
 
         for(int i=0;i<dstport_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=dstport_id[i]+ " " + dstport_legend[i] + "<br/>";
+            tmp+=dstport_id[i]+ ".&emsp;&emsp;" + dstport_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + dstport_cnt[i]+  "<br/>";
         }
         tmp+="</html>";
         dstport_leglbl.setBackground(new Color(41, 101, 196));
@@ -838,7 +807,7 @@ public class HomeFrame {
 
         for(int i=0;i<protocol_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=protocol_id[i] + " " + protocol_legend[i] + "<br/>";
+            tmp+=protocol_id[i] + ".&emsp;&emsp;" + protocol_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + protocol_cnt[i]+  "<br/>";
         }
         tmp+="</html>";
         protocol_leglbl.setBackground(new Color(41, 101, 196));
@@ -848,7 +817,7 @@ public class HomeFrame {
         protocol_leglbl.setText(tmp);
         protocol_leglbl.setBorder(new CompoundBorder(tb5,Borders.DLU21));
         activity_panel.add(protocol_leglbl);
-        protocol_leglbl.setBounds(530, 60, 280, 500);
+        protocol_leglbl.setBounds(320, 55, 280, 500);
         protocol_leglbl.setVisible(false);
 
         TitledBorder tb6=new TitledBorder("Legend TIMESTAMP");
@@ -858,7 +827,7 @@ public class HomeFrame {
 
         for(int i=0;i<timestamp_list.stream().distinct().collect(Collectors.toList()).size();i++)
         {
-            tmp+=timestamp_id[i]+ " " + timestamp_legend[i] + "<br/>";
+            tmp+=timestamp_id[i]+ ".&emsp;&emsp;" + timestamp_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + timestamp_cnt[i]+  "<br/>";
         }
         tmp+="</html>";
         timestamp_leglbl.setBackground(new Color(41, 101, 196));
@@ -868,7 +837,7 @@ public class HomeFrame {
         timestamp_leglbl.setText(tmp);
         timestamp_leglbl.setBorder(new CompoundBorder(tb6,Borders.DLU21));
         activity_panel.add(timestamp_leglbl);
-        timestamp_leglbl.setBounds(530, 60, 280, 500);
+        timestamp_leglbl.setBounds(920, 55, 280, 500);
         timestamp_leglbl.setVisible(false);
 
 
@@ -956,9 +925,12 @@ public class HomeFrame {
         String tableHeader="Flow ID,Src IP,Src Port,Dst IP,Dst Port,Protocol,Timestamp,Flow Duration";
         String[] arrayHeader = StringUtils.split(tableHeader, ",");
 
+        ImageIcon img = new ImageIcon("src/resources/logo_border_small.jpg");
+
         //=== frames ===
         mainFrame = new JFrame();
-
+        mainFrame.setIconImage(img.getImage());
+        mainFrame.setTitle("SecIT Solutions");
         //=== panels ===
         menuPanel = new JPanel() { Image menupanelBackground = ImageIO.read(new File("src/resources/bg8menu.jpg"));
 
@@ -1032,14 +1004,11 @@ public class HomeFrame {
         protocol_leglbl=new JLabel();
         timestamp_leglbl=new JLabel();
 
-        chartsip_lbl=new JLabel();
-        chartsp_lbl=new JLabel();
-        chartdip_lbl=new JLabel();
-        chartdp_lbl=new JLabel();
-        chartprot_lbl=new JLabel();
-        charttim_lbl=new JLabel();
+        procent_lbl=new JLabel();
+
 
         //=== buttons ====
+        activitynext_btn=new JButton();
         menuItem1 = new JButton();
         menuItem2 = new JButton();
         menuItem3 = new JButton();
@@ -1049,11 +1018,16 @@ public class HomeFrame {
         submenu2_btn1 = new JButton();
 
        //=== tables ===
-        tableModel = new DefaultTableModel(arrayHeader,0);
+        tableModel = new DefaultTableModel(arrayHeader,0){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                //all cells false
+                return false;
+            }
+        };
         table = new JTable(tableModel);
 
         //=== charts===
-
 
         //======== mainFrame ========
         {
@@ -1065,7 +1039,7 @@ public class HomeFrame {
             int xSize = ((int) tk.getScreenSize().getWidth());
             int ySize = ((int) tk.getScreenSize().getHeight());
             mainFrame.setSize(xSize,ySize);
-            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
 
             //======== menuPanel ========
             {
@@ -1119,7 +1093,7 @@ public class HomeFrame {
                 menuItem2.setBounds(0, 265, 363, 40);
                 array2_lbl.setIcon(new ImageIcon("src/resources/downarrow32.png"));
                 menuPanel.add(array2_lbl);
-                array2_lbl.setBounds(363, 265, 32, 32);}
+                array2_lbl.setBounds(367, 265, 32, 32);}
 
 
                 //---- menuItem3 ----
@@ -1282,6 +1256,19 @@ public class HomeFrame {
                 //======== activity_panel ======
                 {
 
+                    activitynext_btn.setBackground(new Color(0, 0, 51));
+                    activitynext_btn.setOpaque(false);
+                    activitynext_btn.setBorder(null);
+                    activitynext_btn.setIcon(new ImageIcon(getClass().getResource("/resources/right-arrow.png")));
+                    activitynext_btn.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            activitynext_btnMouseClicked(e);
+                        }
+                    });
+                    activity_panel.add(activitynext_btn);
+                    activitynext_btn.setBounds(1300, 300, 64, 64);
+
                 activity_panel.setOpaque(false);
                 activity_panel.setLayout(null);
 
@@ -1315,7 +1302,8 @@ public class HomeFrame {
                     networkFlow_panel.setLayout(null);
 
                     //======== table_panel ========
-                   { {
+                   {
+                       {
                         //---- table ----
                         table.getTableHeader().setBackground(new Color(0, 0, 51));
                         table.getTableHeader().setForeground(Color.white);
@@ -1331,13 +1319,13 @@ public class HomeFrame {
                     //---- status_lbl ----
                    { status_lbl.setForeground(Color.white);
                     networkFlow_panel.add(status_lbl);
-                    status_lbl.setBounds(30, 670, 755, 25);}
+                    status_lbl.setBounds(50, 670, 755, 25);}
 
                     //---- cnt_lbl ----
                     {cnt_lbl.setText("0");
                     cnt_lbl.setForeground(Color.white);
                     networkFlow_panel.add(cnt_lbl);
-                    cnt_lbl.setBounds(1150, 670, 55, cnt_lbl.getPreferredSize().height);}
+                    cnt_lbl.setBounds(1180, 670, 55, cnt_lbl.getPreferredSize().height);}
 
                     /*networkflow panel size*/
                     {
@@ -1401,20 +1389,33 @@ public class HomeFrame {
 
                 //======== protectionsts_panel =======
 
-                {protectionsts_panel.setLayout(null);
+                {
+                    protectionsts_panel.setLayout(null);
                 protectionsts_panel.setOpaque(false);
+
+
                 lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_green124x200.png")));
                 lock_lbl.setBounds(120, 10, 124, 200);
                 protectionsts_panel.add(lock_lbl);
 
-                circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200.png")));
+//                    procent_lbl.setForeground(Color.black);
+//                    procent_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 65));
+//                    //procent_lbl.setText("100%");
+//                    protectionsts_panel.add(procent_lbl);
+//                    procent_lbl.setBounds(1116, -18, 270, 250);
+
+                circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200txt.png")));
                 circle_lbl.setBounds(1100, 10, 400, 200);
                 protectionsts_panel.add(circle_lbl);
 
-                bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300.png")));
-                bar_lbl.setBounds(180, -134, 1000, 500);
-                protectionsts_panel.add(bar_lbl);}
 
+
+                bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300txt.png")));
+                bar_lbl.setBounds(180, -134, 1000, 500);
+                protectionsts_panel.add(bar_lbl);
+
+
+                }
                 mainPanel.add(protectionsts_panel);
                 protectionsts_panel.setBounds(50, 10, 1400, 200);
 
@@ -1437,8 +1438,6 @@ public class HomeFrame {
             mainFrameContentPane.add(mainPanel);
             mainPanel.setBounds(400, 0, xSize-400, ySize);
 
-
-
                 /*mainFrame size*/
                 {
                 // compute preferred size
@@ -1455,11 +1454,111 @@ public class HomeFrame {
                 mainFrameContentPane.setPreferredSize(preferredSize);
             }
             mainFrame.pack();
-            mainFrame.setLocationRelativeTo(mainFrame.getOwner());
+            mainFrame.setResizable(false);
+            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
 
     }
 
+    private void activitynext_btnMouseClicked(MouseEvent e) {
+        if(activityNext==2)
+            activityNext=0;
+        else
+            activityNext++;
+        if(chartData_ready==0) {
+            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_chart))
+                activity_panel.remove(srcip_chart);
+            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_chart))
+                activity_panel.remove(dstip_chart);
+            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_chart))
+                activity_panel.remove(protocol_chart);
+            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_chart))
+                activity_panel.remove(srcport_chart);
+            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_chart))
+                activity_panel.remove(timestamp_chart);
+            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_chart))
+                activity_panel.remove(dstport_chart);
+
+            if (activityNext == 0) {
+                timestamp_panel.setVisible(false);
+                protocol_panel.setVisible(false);
+                srcip_panel.setVisible(true);
+                srcport_panel.setVisible(true);
+            }
+            else if(activityNext==1)
+            {
+                srcip_panel.setVisible(false);
+                srcport_panel.setVisible(false);
+                dstip_panel.setVisible(true);
+                dstport_panel.setVisible(true);
+
+            }
+            else if(activityNext==2)
+            {
+                dstip_panel.setVisible(false);
+                dstport_panel.setVisible(false);
+                timestamp_panel.setVisible(true);
+                protocol_panel.setVisible(true);
+            }
+        }
+        else{
+            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_panel))
+                activity_panel.remove(srcip_panel);
+            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_panel))
+                activity_panel.remove(dstip_panel);
+            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_panel))
+                activity_panel.remove(protocol_panel);
+            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_panel))
+                activity_panel.remove(srcport_panel);
+            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_panel))
+                activity_panel.remove(timestamp_panel);
+            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_panel))
+                activity_panel.remove(dstport_panel);
+
+            if (activityNext == 0) {
+                timestamp_chart.setVisible(false);
+                timestamp_leglbl.setVisible(false);
+
+                protocol_chart.setVisible(false);
+                protocol_leglbl.setVisible(false);
+
+                srcip_chart.setVisible(true);
+                srcip_leglbl.setVisible(true);
+
+                srcport_chart.setVisible(true);
+                srcport_leglbl.setVisible(true);
+            }
+            else if(activityNext==1)
+            {
+                srcip_chart.setVisible(false);
+                srcip_leglbl.setVisible(false);
+
+                srcport_chart.setVisible(false);
+                srcport_leglbl.setVisible(false);
+
+                dstip_chart.setVisible(true);
+                dstip_leglbl.setVisible(true);
+
+                dstport_chart.setVisible(true);
+                dstport_leglbl.setVisible(true);
+
+            }
+            else if(activityNext==2)
+            {
+                dstip_chart.setVisible(false);
+                dstip_leglbl.setVisible(false);
+
+                dstport_chart.setVisible(false);
+                dstport_leglbl.setVisible(false);
+
+                timestamp_chart.setVisible(true);
+                timestamp_leglbl.setVisible(true);
+
+                protocol_chart.setVisible(true);
+                protocol_leglbl.setVisible(true);
+            }
+        }
+    }
 
 
 }

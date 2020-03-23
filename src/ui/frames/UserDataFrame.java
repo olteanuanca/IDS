@@ -29,7 +29,11 @@ public class UserDataFrame {
     private int completed = 0;
     private String path1 = FlowMgr.getInstance().getSavePath() +"profilePic.txt";
     private String path2 = FlowMgr.getInstance().getSavePath() + "userSetup.txt";
-
+    private int nameerr=0;
+    private int emailerr=0;
+    private int comperr=0;
+    private int comprerr=0;
+    private int deverr=0;
     //==== frames ====
     private JFrame mainFrame;
 
@@ -159,42 +163,88 @@ public class UserDataFrame {
     }
 
     /* Apply changes */
-    private void applyChanges_btnMouseClicked(MouseEvent e) throws IOException, UnsupportedLookAndFeelException {
+    private void applyChanges_btnMouseClicked(MouseEvent e) throws IOException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+        completed=0;
         String errtxt="<html>";
         if (!name_txtField.getText().equals("Lastname Firstname") && name_txtField.getText() != null) {
             completed++;
         } else {
             errtxt+="&emsp;You must enter your name.<br/>";
+            nameerr=1;
         }
         if (!email_txtField.getText().equals("Email Address") && email_txtField.getText() != null && isValid(email_txtField.getText())) {
             completed++;
         } else {
             errtxt+="&emsp;You must enter your email address.<br/>";
+            emailerr=1;
         }
         if (!company_txtField.getText().equals("Company Name") && company_txtField.getText() != null) {
             completed++;
         } else {
             errtxt+="&emsp;You must enter your company name.<br/>";
+            comperr=1;
         }
 
         if (!companyRole_txtField.getText().equals("Your Company role / title") && companyRole_txtField.getText() != null) {
             completed++;
         } else {
             errtxt+="&emsp;You must enter your company role.<br/>";
+            comprerr=1;
         }
 
         if (!deviceName_txtField.getText().equals("Your Device name") && deviceName_txtField.getText() != null) {
             completed++;
         } else {
             errtxt+="&emsp;You must enter your device name.<br/>";
+            deverr=1;
         }
 
         if (completed != 5) {
+            if(nameerr==1)
+            {
+                name_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                name_txtField.setForeground(Color.red);
+            }
+            if(emailerr==1)
+            {
+                email_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                email_txtField.setForeground(Color.red);
+            }
+            if(comperr==1)
+            {
+                company_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                company_txtField.setForeground(Color.red);
+            }
+            if(comprerr==1)
+            {
+               companyRole_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+               companyRole_txtField.setForeground(Color.red);
+            }
+            if(deverr==1)
+            {
+                deviceName_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                deviceName_txtField.setForeground(Color.red);
+            }
             errtxt+="&emsp;</html>";
             errtxt_lbl.setText(errtxt);
             errtxt_lbl.setVisible(true);
             return;
         } else {
+            nameerr=0;
+            name_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            name_txtField.setForeground(Color.white);
+            emailerr=0;
+            email_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            email_txtField.setForeground(Color.white);
+            comperr=0;
+            company_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            company_txtField.setForeground(Color.white);
+            comprerr=0;
+            companyRole_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            companyRole_txtField.setForeground(Color.white);
+            deverr=0;
+            deviceName_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            deviceName_txtField.setForeground(Color.white);
             errtxt_lbl.setText("");
             errtxt_lbl.setVisible(false);
             File file = new File(path2);
@@ -221,8 +271,9 @@ public class UserDataFrame {
             writer.append(deviceName_txtField.getText());
             writer.flush();
             writer.close();
+            new AppDataFrame();
+            mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
 
-            //TODO print green label for success
         }
 
 
@@ -237,8 +288,9 @@ public class UserDataFrame {
 
             reader.close();
         }
-        db.startDBConn();
-        db.insertToUsers(lname, fname, email_txtField.getText(), company_txtField.getText(), companyRole_txtField.getText(), deviceName_txtField.getText(), path);
+        //TODO: INSERT TO DB
+//        db.startDBConn();
+//        db.insertToUsers(lname, fname, email_txtField.getText(), company_txtField.getText(), companyRole_txtField.getText(), deviceName_txtField.getText(), path);
 
     }
 
@@ -287,13 +339,17 @@ public class UserDataFrame {
 
         //======== mainFrame ========
         {
+            ImageIcon img = new ImageIcon("src/resources/logo_border_small.jpg");
+            mainFrame.setIconImage(img.getImage());
+            mainFrame.setTitle("SecIT Solutions");
+
             var mainFrameContentPane = mainFrame.getContentPane();
             mainFrameContentPane.setLayout(null);
             Toolkit tk = Toolkit.getDefaultToolkit();
             int xSize = ((int) tk.getScreenSize().getWidth());
             int ySize = ((int) tk.getScreenSize().getHeight());
             mainFrame.setSize(xSize,ySize);
-            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
 
             //======== mainPanel ========
             {
@@ -320,6 +376,12 @@ public class UserDataFrame {
                             applyChanges_btnMouseClicked(e);
                         } catch (IOException | UnsupportedLookAndFeelException ex) {
                             ex.printStackTrace();
+                        } catch (IllegalAccessException ex) {
+                            ex.printStackTrace();
+                        } catch (InstantiationException ex) {
+                            ex.printStackTrace();
+                        } catch (ClassNotFoundException ex) {
+                            ex.printStackTrace();
                         }
                     }
                 });
@@ -340,7 +402,7 @@ public class UserDataFrame {
                 name_txtField.setForeground(Color.white);
                 name_txtField.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
                 mainPanel.add(name_txtField);
-                name_txtField.setBounds(xSize-870, ySize-885, (int)(xSize/8), (int)(ySize/27));
+                name_txtField.setBounds(xSize-870, ySize-865, (int)(xSize/6.62), (int)(ySize/27));
                 }
 
                 //---- email_txtField ----
@@ -439,7 +501,7 @@ public class UserDataFrame {
                     }
                 });
                 mainPanel.add(name_lbl);
-                name_lbl.setBounds(1350, 200, 35, 35);}
+                name_lbl.setBounds(1350, 220, 35, 35);}
 
                 //---- email_lbl ----
                { email_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/info32.png")));
@@ -459,7 +521,7 @@ public class UserDataFrame {
                 //---- profilePic_lbl ----
                { profilePic_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/girl.png")));
                 mainPanel.add(profilePic_lbl);
-                profilePic_lbl.setBounds((int)(xSize/1.74), (int)(ySize/18), (int)(xSize/16.69), (int)(ySize/8.64));
+                profilePic_lbl.setBounds(1120, (int)(ySize/18), (int)(xSize/16.69), (int)(ySize/8.64));
 
                 //---- changePic_lbl ----
                 changePic_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/change.png")));
@@ -474,10 +536,10 @@ public class UserDataFrame {
                     }
                 });
                 mainPanel.add(changePic_lbl);
-                changePic_lbl.setBounds(xSize-712,  ySize-930, (int)(xSize/48), (int)(ySize/30));}
+                changePic_lbl.setBounds(xSize-680,  ySize-930, (int)(xSize/48), (int)(ySize/30));}
 
                 //---- errtxt_lbl ----
-               { errtxt_lbl.setBackground(new Color(255, 23, 45, 72));
+               { errtxt_lbl.setBackground(new Color(255, 102, 135));
                 errtxt_lbl.setOpaque(true);
                 errtxt_lbl.setForeground(Color.white);
                 errtxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -488,11 +550,11 @@ public class UserDataFrame {
                         tb2,
                         Borders.DLU21));
                 mainPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(xSize-1800, ySize-430, (int) (xSize/2.93), (int)(ySize/4.23));
+                errtxt_lbl.setBounds(900, 650, 655, 255);
                 errtxt_lbl.setVisible(false);}
 
                 //---- infotxt_lbl ----
-               { infotxt_lbl.setBackground(new Color(2, 210, 255,150));
+               { infotxt_lbl.setBackground(new Color(130, 166, 224));
                 infotxt_lbl.setOpaque(true);
                 infotxt_lbl.setForeground(Color.white);
                 infotxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -541,13 +603,19 @@ public class UserDataFrame {
                 mainFrameContentPane.setPreferredSize(preferredSize);
             }
             mainFrame.pack();
-            mainFrame.setLocationRelativeTo(mainFrame.getOwner());
+            mainFrame.setResizable(false);
+            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
     }
 
        /* set info */
     private void deviceName_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your device name.<br/>Your selection will be saved for future uses.</html>";
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        deviceName_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
@@ -555,6 +623,11 @@ public class UserDataFrame {
     /* set info */
     private void email_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your email.<br/>Your selection will be saved for future uses.</html>";
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        email_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
@@ -562,6 +635,11 @@ public class UserDataFrame {
     /* set info */
     private void name_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your name.<br/>Your selection will be saved for future uses.</html>";
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        name_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
@@ -569,6 +647,11 @@ public class UserDataFrame {
     /* set info */
     private void companyRole_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your company role.<br/>Your selection will be saved for future uses.</html>";
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        companyRole_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
@@ -576,36 +659,66 @@ public class UserDataFrame {
     /* set info */
     private void company_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your company name.<br/>Your selection will be saved for future uses.</html>";
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        company_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
 
     /* unset info */
     private void company_lblMouseExited(MouseEvent e) {
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
+        company_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     /* unset info */
     private void companyRole_lblMouseExited(MouseEvent e) {
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
+        companyRole_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     /* unset info */
     private void name_lblMouseExited(MouseEvent e) {
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
+        name_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     /* unset info */
     private void email_lblMouseExited(MouseEvent e) {
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
+        email_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     /* unset info */
     private void deviceName_lblMouseExited(MouseEvent e) {
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
+        deviceName_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }

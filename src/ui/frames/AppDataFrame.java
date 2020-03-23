@@ -17,44 +17,63 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 
 public class AppDataFrame {
+    //=== general ===
     IDB db=new DB();
     private int pathloaded=0;
     private int adapterloaded=0;
     private String path1 = FlowMgr.getInstance().getSavePath() + "appSetup.txt";
 
+    //=== frames ====
     private JFrame mainFrame;
+
+    //=== panels ===
     private JPanel appPanel;
+
+    //=== combo box ====
     private JComboBox networkAdapter_comboBox;
+
+    //=== text fields ===
     private JTextField folderPath_txtField;
-    private JLabel selFolder_lbl;
-    private JLabel networkAdapterEdit_lbl;
-    private JLabel networkAdapterInfo_lbl;
-    private JLabel delHistory;
     private JTextField history_txtField;
+
+    //=== labels ===
+    private JButton selFolder_btn;
+
+    private JButton networkAdapterEdit_btn;
+    private JLabel networkAdapterInfo_lbl;
+
+    private JLabel delHistory;
     private JLabel delHistory2;
     private JLabel historyInfo_lbl;
     private JLabel selFolderInfo_lbl;
-    private JButton applyChanges_btn;
+    private JLabel startRadioBtn_label;
     private JLabel networkAdapterCheck_label;
     private JLabel selectFolderCheck_label;
     private JLabel title;
     private JLabel frameTitle_lbl;
-    private JRadioButton yesStart_radioBtn;
     private JLabel startapp;
-    private JRadioButton noStart_radioBtn;
-    private JLabel startRadioBtn_label;
-    private JRadioButton yesRem_radioBtn;
-    private JRadioButton noRem_radioBtn;
     private JLabel remRadioBtn_label;
     private JLabel rememberMe_label;
     private JLabel errtxt_lbl;
     private JLabel infotxt_lbl;
+
+    //=== buttons ===
+    private JButton applyChanges_btn;
+
+   //=== radio buttons ===
+    private JRadioButton yesStart_radioBtn;
+    private JRadioButton noStart_radioBtn;
+
+    private JRadioButton yesRem_radioBtn;
+    private JRadioButton noRem_radioBtn;
+
 
     public AppDataFrame() throws IOException, ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
 
@@ -84,61 +103,111 @@ public class AppDataFrame {
     }
 
     private void historyInfo_lblMouseEntered(MouseEvent e) {
-     String infotxt="<html>How much time you want to keep the data collected from monitoring the network.<br/>Your selection will be saved for future uses.</html>";
+        historyInfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
+        String infotxt="<html>How much time you want to keep the data collected from monitoring the network.<br/>Your selection will be saved for future uses.</html>";
      infotxt_lbl.setText(infotxt);
      infotxt_lbl.setVisible(true);
     }
 
     private void historyInfo_lblMouseExited(MouseEvent e) {
+        historyInfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     private void networkAdapterInfo_lblMouseEntered(MouseEvent e) {
+        networkAdapterInfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         String infotxt="<html>Which network interface you want to monitor.<br/>Your selection will be saved for future uses.</html>";
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
 
     private void networkAdapterInfo_lblMouseExited(MouseEvent e) {
+        networkAdapterInfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     private void selFolderInfo_lblMouseEntered(MouseEvent e) {
+        selFolderInfo_lbl.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         String infotxt="<html>The path to a direcory where you want to keep the data collected from monitoring the network.<br/>Your selection will be saved for future uses.</html>";
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
 
     private void selFolderInfo_lblMouseExited(MouseEvent e) {
+        selFolderInfo_lbl.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     private void startRadioBtn_labelMouseEntered(MouseEvent e) {
+        startRadioBtn_label.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         String infotxt="<html>You want to start this application automatically when your computer starts?<br/>Your selection will be saved for future uses.</html>";
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
 
     private void startRadioBtn_labelMouseExited(MouseEvent e) {
+        startRadioBtn_label.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
     private void remRadioBtn_labelMouseEntered(MouseEvent e) {
+        remRadioBtn_label.setIcon(new ImageIcon("src/resources/info32blue.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(200, 650, 655, 255);
+        }
         String infotxt="<html>You want to save your credentials and keep you signed in?<br/>Your selection will be saved for future uses.</html>";
         infotxt_lbl.setText(infotxt);
         infotxt_lbl.setVisible(true);
     }
 
     private void remRadioBtn_labelMouseExited(MouseEvent e) {
+        remRadioBtn_label.setIcon(new ImageIcon("src/resources/info32.png"));
+        if(errtxt_lbl.isShowing())
+        {
+            errtxt_lbl.setBounds(900, 650, 655, 255);
+        }
         infotxt_lbl.setText("");
         infotxt_lbl.setVisible(false);
     }
 
-    private void selFolder_lblMouseClicked(MouseEvent e) throws InterruptedException {
+    private void selFolder_btnMouseClicked(MouseEvent e) throws InterruptedException {
         JFileChooser fileChooser = new JFileChooser();
         File file = null;
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -149,18 +218,33 @@ public class AppDataFrame {
             file = fileChooser.getSelectedFile();
             folderPath_txtField.setText(file.getPath());
             selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/check32.png")));
+            folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+            folderPath_txtField.setForeground(Color.white);
             errtxt_lbl.setText("");
             errtxt_lbl.setVisible(false);
            pathloaded=1;
         } else {
-            assert file != null;
+            if(file!=null)
+            {
             if (!file.isDirectory()) {
                 selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                folderPath_txtField.setForeground(Color.red);
                 errtxt_lbl.setText(errtxt);
                 errtxt_lbl.setVisible(true);
                pathloaded=0;
             } else {
                 selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+                folderPath_txtField.setForeground(Color.white);
+                errtxt_lbl.setText(errtxt);
+                errtxt_lbl.setVisible(true);
+                pathloaded=0;
+            }}
+            else{
+                selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+                folderPath_txtField.setForeground(Color.white);
                 errtxt_lbl.setText(errtxt);
                 errtxt_lbl.setVisible(true);
                 pathloaded=0;
@@ -169,7 +253,8 @@ public class AppDataFrame {
 
     }
 
-    private void networkAdapterEdit_lblMouseClicked(MouseEvent e) {
+    private void networkAdapterEdit_btnMouseClicked(MouseEvent e) {
+        networkAdapterCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
         LoadNetworkAdapterWorker task = new LoadNetworkAdapterWorker();
         task.addPropertyChangeListener(event -> {
             if ("state".equals(event.getPropertyName())) {
@@ -186,6 +271,7 @@ public class AppDataFrame {
                                 networkAdapter_comboBox.addItem(pcapif);
                             }
                             networkAdapterCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/check32.png")));
+                            networkAdapter_comboBox.setBackground(new Color(0, 0, 51));
                            adapterloaded=1;
                         } catch (InterruptedException | ExecutionException err) {
                             //TODO: logger.debug(e.getMessage());
@@ -193,7 +279,8 @@ public class AppDataFrame {
                             errtxt_lbl.setText(errtxt);
                             errtxt_lbl.setVisible(true);
                             networkAdapterCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
-                           adapterloaded=0;
+                            networkAdapter_comboBox.setBackground(new Color(255, 102, 135));
+                            adapterloaded=0;
                         }
                         break;
                 }
@@ -205,35 +292,62 @@ public class AppDataFrame {
     private void applyChanges_btnMouseClicked(MouseEvent e) throws IOException, UnsupportedLookAndFeelException {
         String errtxt="<html>";
         int radiobloaded=1;
-
+        startapp.setForeground(Color.white);
+        rememberMe_label.setForeground(Color.white);
         File tmp=new File(folderPath_txtField.getText());
+
         if(tmp!=null)
         {
-            if (!tmp.isDirectory()) {
+            if( tmp.getName().equals("Select directory path to save network flows")==true)
+            {
                 selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                folderPath_txtField.setForeground(Color.red);
+                pathloaded=0;
+            }
+            else if (!tmp.isDirectory()) {
+                selectFolderCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.red));
+                folderPath_txtField.setForeground(Color.red);
                 errtxt+="&emsp;The path you inserted must be to a directory.<br/>";
                 pathloaded=0;
             }
             else{
                 pathloaded=1;
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, Color.white));
+                folderPath_txtField.setForeground(Color.white);
             }
         }
         if ((!yesStart_radioBtn.isSelected() && !noStart_radioBtn.isSelected()) || (!yesRem_radioBtn.isSelected() && !noRem_radioBtn.isSelected())) {
             errtxt+="&emsp;You can't leave fields uncompleted. Please choose an option.<br/>";
             radiobloaded=0;
+
+
+        }
+        if (!yesStart_radioBtn.isSelected() && !noStart_radioBtn.isSelected())
+        {
+            startapp.setForeground(new Color(255, 102, 135));
+        }
+        if(!yesRem_radioBtn.isSelected() && !noRem_radioBtn.isSelected())
+        {
+            rememberMe_label.setForeground(new Color(255, 102, 135));
         }
         if(adapterloaded==0)
         {
                 errtxt+="&emsp;Load a network adapter.<br/>";
+                networkAdapter_comboBox.setBackground(new Color(255, 102, 135));
+                networkAdapterCheck_label.setIcon(new ImageIcon(getClass().getResource("/resources/remove32.png")));
         }
         if(pathloaded==0)
         {
                 errtxt+="&emsp;Insert path to save data.<br/>";
+                folderPath_txtField.setBorder(new MatteBorder(0, 0, 2, 0, new Color(255, 102, 135)));
+                folderPath_txtField.setForeground(new Color(255, 102, 135));
         }
 
         if(adapterloaded==0 || pathloaded==0 || radiobloaded ==0)
         {
-            errtxt+="&emsp;Something went wrong. Please check fields.<br/></html>";
+            errtxt+="<br/></html>";
             errtxt_lbl.setText(errtxt);
             errtxt_lbl.setVisible(true);
             return;
@@ -276,11 +390,11 @@ public class AppDataFrame {
         writer.flush();
         writer.close();
 
-
+            //TODO INSERT TO DB
 //        db.startDBConn();
 //        db.insertToAppdata(networkAdapter_comboBox.getSelectedItem().toString(),folderPath_txtField.getText(),Integer.parseInt(history_txtField.getText()),startAuto,remMe);
-//        new UserDataFrame();
-//        mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+        new HomeFrame();
+        mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
     }
 
     private void initComponents() throws IOException {
@@ -297,8 +411,8 @@ public class AppDataFrame {
         };
         networkAdapter_comboBox = new JComboBox();
         folderPath_txtField = new JTextField();
-        selFolder_lbl = new JLabel();
-        networkAdapterEdit_lbl = new JLabel();
+        selFolder_btn = new JButton();
+        networkAdapterEdit_btn = new JButton();
         networkAdapterInfo_lbl = new JLabel();
         delHistory = new JLabel();
         history_txtField = new JTextField();
@@ -320,15 +434,20 @@ public class AppDataFrame {
         title = new JLabel();
         errtxt_lbl=new JLabel();
         infotxt_lbl=new JLabel();
+
         //======== mainFrame ========
         {
+            ImageIcon img = new ImageIcon("src/resources/logo_border_small.jpg");
+            mainFrame.setIconImage(img.getImage());
+            mainFrame.setTitle("SecIT Solutions");
+
             var mainFrameContentPane = mainFrame.getContentPane();
             mainFrameContentPane.setLayout(null);
             Toolkit tk = Toolkit.getDefaultToolkit();
             int xSize = ((int) tk.getScreenSize().getWidth());
             int ySize = ((int) tk.getScreenSize().getHeight());
             mainFrame.setSize(xSize,ySize);
-            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
 
             //======== appPanel ========
             {
@@ -344,7 +463,7 @@ public class AppDataFrame {
 
                 networkAdapter_comboBox.setPrototypeDisplayValue("Select default Network Adapter");
                 networkAdapter_comboBox.setBorder(null);
-                networkAdapter_comboBox.setBackground(new Color(0, 0, 51, 80));
+                networkAdapter_comboBox.setBackground(new Color(0, 0, 51));
                 networkAdapter_comboBox.setOpaque(true);
                 networkAdapter_comboBox.setForeground(Color.white);
                 networkAdapter_comboBox.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -360,32 +479,33 @@ public class AppDataFrame {
                 appPanel.add(folderPath_txtField);
                 folderPath_txtField.setBounds(800, 280, 880, 40);
 
-                //---- selFolder_lbl ----
-                selFolder_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/magnifier32.png")));
-                selFolder_lbl.addMouseListener(new MouseAdapter() {
+                //---- selFolder_btn ----
+                selFolder_btn.setIcon(new ImageIcon(getClass().getResource("/resources/magnifier32.png")));
+                selFolder_btn.setBackground(new Color(0, 0, 51));
+                selFolder_btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         try {
-                            selFolder_lblMouseClicked(e);
+                            selFolder_btnMouseClicked(e);
                         } catch (InterruptedException ex) {
                             ex.printStackTrace();
                         }
                     }
                 });
-                appPanel.add(selFolder_lbl);
-                selFolder_lbl.setBounds(1690, 275, 40, 40);
+                appPanel.add(selFolder_btn);
+                selFolder_btn.setBounds(1690, 280, 40, 40);
 
-                //---- networkAdapterEdit_lbl ----
-                networkAdapterEdit_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/magnifier32.png")));
-                //networkAdapterEdit_lbl.setBackground(new Color(3, 211, 252, 50));
-                networkAdapterEdit_lbl.addMouseListener(new MouseAdapter() {
+                //---- networkAdapterEdit_btn ----
+                networkAdapterEdit_btn.setBackground(new Color(0, 0, 51));
+                networkAdapterEdit_btn.setIcon(new ImageIcon(getClass().getResource("/resources/magnifier32.png")));
+                networkAdapterEdit_btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        networkAdapterEdit_lblMouseClicked(e);
+                        networkAdapterEdit_btnMouseClicked(e);
                     }
                 });
-                appPanel.add(networkAdapterEdit_lbl);
-                networkAdapterEdit_lbl.setBounds(1690, 210, 40, 40);
+                appPanel.add(networkAdapterEdit_btn);
+                networkAdapterEdit_btn.setBounds(1690, 215, 40, 40);
 
                 //---- networkAdapterInfo_lbl ----
                 networkAdapterInfo_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/info32.png")));
@@ -400,7 +520,7 @@ public class AppDataFrame {
                     }
                 });
                 appPanel.add(networkAdapterInfo_lbl);
-                networkAdapterInfo_lbl.setBounds(1735, 210, 40, 40);
+                networkAdapterInfo_lbl.setBounds(1735, 215, 40, 40);
 
                 //---- delHistory ----
                 delHistory.setText("Delete history in");
@@ -454,7 +574,7 @@ public class AppDataFrame {
                     }
                 });
                 appPanel.add(selFolderInfo_lbl);
-                selFolderInfo_lbl.setBounds(1735, 275, 40, 40);
+                selFolderInfo_lbl.setBounds(1735, 280, 40, 40);
 
                 //---- applyChanges_btn ----
                 applyChanges_btn.setText("Apply changes");
@@ -478,11 +598,11 @@ public class AppDataFrame {
 
                 //---- networkAdapterCheck_label ----
                 appPanel.add(networkAdapterCheck_label);
-                networkAdapterCheck_label.setBounds(1785, 210, 40, 40);
+                networkAdapterCheck_label.setBounds(1775, 215, 40, 40);
 
                 //---- selectFolderCheck_label ----
                 appPanel.add(selectFolderCheck_label);
-                selectFolderCheck_label.setBounds(1785, 275, 40, 40);
+                selectFolderCheck_label.setBounds(1775, 280, 40, 40);
 
                 //---- logo ----
                 title.setIcon(new ImageIcon("src/resources/title_transp.png"));
@@ -583,7 +703,7 @@ public class AppDataFrame {
                 rememberMe_label.setBounds(800, 485, 185, 45);
 
                 //---- errtxt_lbl ----
-                errtxt_lbl.setBackground(new Color(255, 23, 45, 72));
+                errtxt_lbl.setBackground(new Color(255, 102, 135));
                 errtxt_lbl.setOpaque(true);
                 errtxt_lbl.setForeground(Color.white);
                 errtxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -594,11 +714,11 @@ public class AppDataFrame {
                         tb2,
                         Borders.DLU21));
                 appPanel.add(errtxt_lbl);
-                errtxt_lbl.setBounds(xSize-1800, ySize-430, (int) (xSize/2.93), (int)(ySize/4.23));
-               errtxt_lbl.setVisible(false);
+                errtxt_lbl.setBounds(900, 650, 655, 255);
+                errtxt_lbl.setVisible(false);
 
                 //---- infotxt_lbl ----
-                infotxt_lbl.setBackground(new Color(2, 210, 255,150));
+                infotxt_lbl.setBackground(new Color(130, 166, 224));
                 infotxt_lbl.setOpaque(true);
                 infotxt_lbl.setForeground(Color.white);
                 infotxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -645,7 +765,8 @@ public class AppDataFrame {
                 mainFrameContentPane.setPreferredSize(preferredSize);
             }
             mainFrame.pack();
-            mainFrame.setLocationRelativeTo(mainFrame.getOwner());
+            mainFrame.setResizable(false);
+            mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
     }
 

@@ -15,10 +15,10 @@ public class Main {
         EventQueue.invokeLater(() -> {
             try {
               FlowMgr.getInstance().init();
-                 // new SignUpFrame();
-                // new LogInFrame();
-                //new AppDataFrame();
-                 //new UserDataFrame();
+                 //new SignUpFrame();
+                  // new LogInFrame();
+               // new AppDataFrame();
+                // new UserDataFrame();
                 new HomeFrame();
                 //Client x=new Client();
 
