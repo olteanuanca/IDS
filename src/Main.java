@@ -17,10 +17,9 @@ public class Main {
               FlowMgr.getInstance().init();
                  //new SignUpFrame();
                   // new LogInFrame();
-               // new AppDataFrame();
+                    // new AppDataFrame();
                 // new UserDataFrame();
                 new HomeFrame();
-                //Client x=new Client();
 
 
             } catch (Exception e) {

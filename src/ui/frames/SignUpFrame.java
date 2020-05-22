@@ -234,8 +234,8 @@ public class SignUpFrame {
             //        db.startDBConn();
             //        db.insertToCredentials(username_txtField.getText(), secPwd);
             //
-                    new LogInFrame();
-                    mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+            new UserDataFrame();
+            mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
         }
         else
         {

@@ -45,7 +45,7 @@ public class AppDataFrame {
 
     //=== labels ===
     private JButton selFolder_btn;
-
+    private JButton goBack_btn;
     private JButton networkAdapterEdit_btn;
     private JLabel networkAdapterInfo_lbl;
 
@@ -409,6 +409,7 @@ public class AppDataFrame {
                 g.drawImage(panelBackground, 0, 0, null);
             }
         };
+        goBack_btn=new JButton();
         networkAdapter_comboBox = new JComboBox();
         folderPath_txtField = new JTextField();
         selFolder_btn = new JButton();
@@ -580,7 +581,7 @@ public class AppDataFrame {
                 applyChanges_btn.setText("Apply changes");
                 applyChanges_btn.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
                 applyChanges_btn.setForeground(Color.white);
-                applyChanges_btn.setBackground(new Color(3, 211, 252, 35));
+                applyChanges_btn.setBackground(new Color(0, 20, 48));
                 applyChanges_btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -595,6 +596,22 @@ public class AppDataFrame {
                 });
                 appPanel.add(applyChanges_btn);
                 applyChanges_btn.setBounds(1100, 555, 185, 45);
+
+                //----goBack_btn ----
+                {
+                    goBack_btn.setText("< Go back");
+                    goBack_btn.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
+                    goBack_btn.setForeground(Color.white);
+                    goBack_btn.setBackground(new Color(0, 20, 48));
+                    goBack_btn.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            goBack_btnMouseClicked(e);
+                        }
+                    });
+                    mainFrame.add(goBack_btn);
+                    goBack_btn.setBounds(xSize-1850, ySize-125, (int) (xSize/10.37), (int) (ySize/24));
+                }
 
                 //---- networkAdapterCheck_label ----
                 appPanel.add(networkAdapterCheck_label);
@@ -769,6 +786,10 @@ public class AppDataFrame {
             mainFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
     }
-
+    private void goBack_btnMouseClicked(MouseEvent e) {
+        mainFrame.setVisible(false); //you can't see me!
+        mainFrame.dispose(); //Destroy the JFrame object
+    }
 
 }
+

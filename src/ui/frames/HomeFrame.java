@@ -1,7 +1,11 @@
 package ui.frames;
 
 import com.jgoodies.forms.factories.Borders;
+import connection.Client;
 import connection.SendToServer;
+import database.DB;
+import database.IDB;
+import guiUtils.CustomPanel;
 import guiUtils.ImageRotate;
 import guiUtils.ImageRotateSmall;
 import guiUtils.charts.BarChartPanel;
@@ -11,6 +15,7 @@ import jnetpcap.FlowFeature;
 import jnetpcap.worker.TrafficFlowWorker;
 import jnetpcap.manager.FlowMgr;
 
+import net.proteanit.sql.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -19,6 +24,7 @@ import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.data.general.DefaultPieDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Attack;
 import utils.InsertCsvRow;
 import utils.InsertTableRow;
 
@@ -26,6 +32,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -34,6 +41,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.List;
@@ -46,17 +55,22 @@ import java.util.stream.Collectors;
 
 
 public class HomeFrame {
-
+    private static int notification_index=0;
+    private static float protectionStatus=100;
+    IDB db = new DB();
     protected static final Logger logger = LoggerFactory.getLogger(HomeFrame.class);
     private TrafficFlowWorker trafficWorker;
     private ExecutorService csvWriterThread;
     private DefaultTableModel tableModel;
+    private DefaultTableModel iptableModel;
     private String path1 =  FlowMgr.getInstance().getSavePath() + "appSetup.txt";
     private int activityNext=0;
     // === frames ===
     private JFrame mainFrame;
 
     // === panels ===
+    private JPanel homePanel;
+
     private JPanel menuPanel;
     private JPanel networkFlow_panel;
     private JPanel mainPanel;
@@ -69,61 +83,30 @@ public class HomeFrame {
     private JPanel protectionsts_panel;
 
     private JPanel activity_panel;
-    private JPanel srcip_panel;
-    private JPanel dstip_panel;
-    private JPanel dstport_panel;
-    private JPanel srcport_panel;
-    private JPanel protocol_panel;
-    private JPanel timestamp_panel;
 
 
 
     //=== tables ===
     private JTable table;
     private JScrollPane table_panel;
-
-    //=== charts ===
-    private static int chartData_ready=0;
-    private static List<String> srcip_list = new ArrayList<String>();
-    private static List<String> dstip_list = new ArrayList<String>();
-    private static List<String> srcport_list = new ArrayList<String>();
-    private static List<String> dstport_list = new ArrayList<String>();
-    private static List<String> protocol_list = new ArrayList<String>();
-    private static List<String> timestamp_list = new ArrayList<String>();
-    BarChartPanel srcip_chart;
-    BarChartPanel srcport_chart;
-    BarChartPanel dstip_chart;
-    BarChartPanel dstport_chart;
-    BarChartPanel protocol_chart;
-    BarChartPanel timestamp_chart;
+    //---activity
+    private JScrollPane ipscrollPane;
+    private JTable ipTable;
 
 
     //=== labels ===
     private JLabel logo;
+    private JLabel protection_lbl;
+    private JLabel protectiontxt_lbl;
     private JLabel status_lbl;
     private JLabel cnt_lbl;
     private JLabel title;
     private JLabel array2_lbl;
 
-    private JLabel circle_lbl;
+
     private JLabel bar_lbl;
     private JLabel lock_lbl;
 
-    private JLabel sts_lbl;
-    private JLabel sts_lbl1;
-    private JLabel sts_lbl2;
-    private JLabel sts_lbl3;
-    private JLabel sts_lbl4;
-    private JLabel sts_lbl5;
-
-    private JLabel srcip_leglbl;
-    private JLabel dstip_leglbl;
-    private JLabel dstport_leglbl;
-    private JLabel srcport_leglbl;
-    private JLabel protocol_leglbl;
-    private JLabel timestamp_leglbl;
-
-    private JLabel procent_lbl;
     //=== buttons ===
     private JButton menuItem1;
     private JButton menuItem2;
@@ -131,7 +114,6 @@ public class HomeFrame {
     private JButton menuItem4;
     private JButton menuItem5;
     private JButton menuItem6;
-    private JButton activitynext_btn;
 
     private JButton submenu2_btn1;
 
@@ -149,7 +131,6 @@ public class HomeFrame {
     /* Constructor for csvWriter thread*/
     private void init()
     {
-
         csvWriterThread = Executors.newSingleThreadExecutor();
     }
 
@@ -188,7 +169,7 @@ public class HomeFrame {
             } else if (TrafficFlowWorker.PROPERTY_FLOW.equalsIgnoreCase(event.getPropertyName())) {
                 try {
                     insertFlow((BasicFlow) event.getNewValue());
-                } catch (IOException e) {
+                } catch (IOException | AWTException e) {
                     e.printStackTrace();
                 }
             } else if ("state".equals(event.getPropertyName())) {
@@ -214,11 +195,10 @@ public class HomeFrame {
             }
         });
         trafficWorker.execute();
-        // status_lbl.setForeground(SystemColor.desktop);
     }
 
     /* Insert to table and csv captured traffic*/
-    private void insertFlow(BasicFlow flow) throws IOException {
+    private void insertFlow(BasicFlow flow) throws IOException, AWTException {
         List<String> flowStringList = new ArrayList<>();
         List<String[]> flowDataList = new ArrayList<>();
         List<String[]> tableflowDataList;
@@ -241,16 +221,38 @@ public class HomeFrame {
         String path = FlowMgr.getInstance().getSavePath();
         String filename = LocalDate.now().toString() + FlowMgr.FLOW_SUFFIX;
         csvWriterThread.execute(new InsertCsvRow(header, flowStringList, path, filename));
-        processActivityCharts(header,flowStringList);
-        chartData_ready=1;
-        //TODO ENABLE SERVER
-        //Send data to server
-        //SwingUtilities.invokeLater(new SendToServer(flowStringList));
+
+        Client c = new Client(flowStringList);
+        new Thread(c).start();
+
+        float oldProtectionSts = protectionStatus;
+
+        protectionStatus= ((Client) c).getProtectionStatus();
+
+        if(oldProtectionSts>protectionStatus)
+        {
+            protection_lbl.setText(Float.toString(protectionStatus));
+            notification_panel.add(add_notification("We discovered some unusual behaviour. Please check yout network traffic!",notification_index));
+            notification_index ++;
+            if (SystemTray.isSupported()) {
+                WinNotifications td = new WinNotifications();
+                td.displayNotif("Alert!!!","We discovered some unusual behaviour. Please check yout network traffic!");
+            }
+        }
+
+        if(protectionStatus<25)
+            setProtectionsts_red();
+        else if(protectionStatus<50)
+            setProtectionsts_pink();
+        else if(protectionStatus<75)
+            setProtectionsts_yellow();
+        else
+            setProtectionsts_green();
+
         //insert flows to JTable
         SwingUtilities.invokeLater(new InsertTableRow(tableModel, tableflowDataList, cnt_lbl));
 
         tableflowDataList=null;
-        //  btnSave.setEnabled(true);
     }
 
     /* Show submenu for menu item 2 (TOOLS) */
@@ -281,181 +283,74 @@ public class HomeFrame {
     /* Show captured traffic (TOOLS - TRAFFIC VIEWER)*/
     private void submenu2_btn1MouseClicked(MouseEvent e) {
         if(notification_scrollpanel.isShowing())
-            notification_scrollpanel.setVisible(false);
+        { notification_scrollpanel.setVisible(false);
+            menuItem4.setForeground(Color.white);
+            menuItem4.setBackground(new Color(0, 20, 48));
+        }
         if(activity_panel.isShowing())
-            activity_panel.setVisible(false);
+
+{               activity_panel.setVisible(false);
+                menuItem3.setForeground(Color.white);
+                menuItem3.setBackground(new Color(0, 20, 48));
+}
         submenu2.setVisible(false);
         networkFlow_panel.setVisible(true);
-        setProtectionsts_yellow();
+        menuItem2.setForeground(new Color(0, 20, 48));
+        menuItem2.setBackground(new Color(163, 194, 204));
+
     }
 
     /* Show item 3 (ACTIVITY)*/
-    private void menuItem3MouseClicked(MouseEvent e) throws AWTException {
-        setProtectionsts_green();
-        if (SystemTray.isSupported()) {
-            WinNotifications td = new WinNotifications();
-            td.displayNotif("Test","Notification test");
-        }
+    private void menuItem3MouseClicked(MouseEvent e) throws AWTException, SQLException {
+
         if(notification_scrollpanel.isShowing())
-            notification_scrollpanel.setVisible(false);
+           { notification_scrollpanel.setVisible(false);
+               menuItem4.setForeground(Color.white);
+               menuItem4.setBackground(new Color(0, 20, 48));
+           }
         if(networkFlow_panel.isShowing())
-             networkFlow_panel.setVisible(false);
+        { networkFlow_panel.setVisible(false);
+            menuItem2.setForeground(Color.white);
+            menuItem2.setBackground(new Color(0, 20, 48));}
 
-        if(srcip_list.stream().distinct().collect(Collectors.toList()).size()>30)
-            resetActivityCharts();
-        if(srcport_list.stream().distinct().collect(Collectors.toList()).size()>30)
-            resetActivityCharts();
-        if(dstip_list.stream().distinct().collect(Collectors.toList()).size()>30)
-            resetActivityCharts();
-        if(dstport_list.stream().distinct().collect(Collectors.toList()).size()>30)
-            resetActivityCharts();
+        menuItem3.setForeground(new Color(0, 20, 48));
+        menuItem3.setBackground(new Color(163, 194, 204));
+         activity_panel.setVisible(true);
 
-        if(chartData_ready==0)
+        db.startDBConn();
+        ArrayList<Attack> attack_list = db.retrieveFromAttacks(db.getUserID());
+        DefaultTableModel model=(DefaultTableModel)ipTable.getModel();
+        Object[] row = new Object[8];
+        for(int i=0;i<attack_list.size();i++)
         {
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_chart))
-                activity_panel.remove(srcip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_chart))
-                activity_panel.remove(dstip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_chart))
-                activity_panel.remove(protocol_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_chart))
-                activity_panel.remove(srcport_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_chart))
-                activity_panel.remove(timestamp_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_chart))
-                activity_panel.remove(dstport_chart);
-
-            activity_panel.revalidate();
-
-            createLoadingCharts();
-
-            activity_panel.add(srcip_panel);
-            srcip_panel.setVisible(false);
-            activity_panel.add(dstip_panel);
-            dstip_panel.setVisible(false);
-            activity_panel.add(protocol_panel);
-            protocol_panel.setVisible(false);
-            activity_panel.add(srcport_panel);
-            srcport_panel.setVisible(false);
-            activity_panel.add(timestamp_panel);
-            timestamp_panel.setVisible(false);
-            activity_panel.add(dstport_panel);
-            dstport_panel.setVisible(false);
-
-            if(activityNext==0)
-            {
-                srcip_panel.setVisible(true);
-                srcport_panel.setVisible(true);
-
-            }
-            else if(activityNext==1)
-            {
-                dstip_panel.setVisible(true);
-                dstport_panel.setVisible(true);
-            }
-            else if(activityNext==2)
-            {
-                timestamp_panel.setVisible(true);
-                protocol_panel.setVisible(true);
-            }
-
+            row[0]=attack_list.get(i).getSrcIP();
+            row[1]=attack_list.get(i).getDstIP();
+            row[2]=attack_list.get(i).getSrcPort();
+            row[3]=attack_list.get(i).getDstPort();
+            row[4]=attack_list.get(i).getProtocol();
+            row[5]=attack_list.get(i).getFlowDuration();
+            row[6]=attack_list.get(i).getTmstamp();
+            row[7]=attack_list.get(i).getResult();
+            model.addRow(row);
         }
-        else
-        {
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_panel))
-                activity_panel.remove(srcip_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_panel))
-                activity_panel.remove(dstip_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_panel))
-                activity_panel.remove(protocol_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_panel))
-                activity_panel.remove(srcport_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_panel))
-                activity_panel.remove(timestamp_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_panel))
-                activity_panel.remove(dstport_panel);
 
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_chart))
-                activity_panel.remove(srcip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_chart))
-                activity_panel.remove(dstip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_chart))
-                activity_panel.remove(protocol_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_chart))
-                activity_panel.remove(srcport_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_chart))
-                activity_panel.remove(timestamp_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_chart))
-                activity_panel.remove(dstport_chart);
-
-            activity_panel.revalidate();
-
-            createActivityCharts();
-
-
-            activity_panel.add(srcip_chart);
-            srcip_chart.setBounds(20, 50, 280, 280);
-            srcip_chart.setVisible(false);
-
-
-            activity_panel.add(dstip_chart);
-            dstip_chart.setBounds(20, 50, 280, 280);
-            dstip_chart.setVisible(false);
-
-
-            activity_panel.add(protocol_chart);
-            protocol_chart.setBounds(20, 50, 280, 280);
-            protocol_chart.setVisible(false);
-
-
-            activity_panel.add(srcport_chart);
-            srcport_chart.setBounds(620, 50, 280, 280);
-            srcport_chart.setVisible(false);
-
-            activity_panel.add(timestamp_chart);
-            timestamp_chart.setBounds(620, 50, 280, 280);
-            timestamp_chart.setVisible(false);
-
-
-            activity_panel.add(dstport_chart);
-            dstport_chart.setBounds(620, 50, 280, 280);
-            dstport_chart.setVisible(false);
-
-            if(activityNext==0)
-            {
-                srcip_chart.setVisible(true);
-                srcip_leglbl.setVisible(true);
-                srcport_chart.setVisible(true);
-                srcport_leglbl.setVisible(true);
-            }
-            else if(activityNext==1)
-            {
-                dstip_chart.setVisible(true);
-                dstip_leglbl.setVisible(true);
-                dstport_chart.setVisible(true);
-                dstport_leglbl.setVisible(true);
-            }
-            else if(activityNext==2)
-            {
-                timestamp_chart.setVisible(true);
-                timestamp_leglbl.setVisible(true);
-                protocol_chart.setVisible(true);
-                protocol_leglbl.setVisible(true);
-            }
-        }
-        activity_panel.setVisible(true);
     }
 
     /* Show item 4 (NOTIFICATIONS)*/
-    private void menuItem4MouseClicked(MouseEvent e) {
+    private void menuItem4MouseClicked(MouseEvent e) throws AWTException {
 
         if(networkFlow_panel.isShowing())
-            networkFlow_panel.setVisible(false);
+           { networkFlow_panel.setVisible(false);
+               menuItem2.setForeground(Color.white);
+               menuItem2.setBackground(new Color(0, 20, 48));}
         if(activity_panel.isShowing())
-            activity_panel.setVisible(false);
+            {activity_panel.setVisible(false);
+        menuItem3.setForeground(Color.white);
+        menuItem3.setBackground(new Color(0, 20, 48));}
 
+        menuItem4.setForeground(new Color(0, 20, 48));
+        menuItem4.setBackground(new Color(163, 194, 204));
         notification_scrollpanel.setVisible(true);
-        setProtectionsts_red();
     }
 
     /* Show item 5 (USER DATA)*/
@@ -468,6 +363,7 @@ public class HomeFrame {
     private void menuItem6MouseClicked(MouseEvent e) throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException, IOException {
         new AppDataFrame();
     }
+
     /* print notifications */
     private JLabel add_notification(String txt,int index)
     {
@@ -496,432 +392,29 @@ public class HomeFrame {
     private void setProtectionsts_green()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_green124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200txt.png")));
         bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300txt.png")));
-        procent_lbl.setText("100%");
     }
     private void setProtectionsts_yellow()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_yellow124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_yellow200x200txt.png")));
         bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_yellow1000x300txt.png")));
-        //procent_lbl.setText("50%");
     }
     private void setProtectionsts_red()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_red124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_red200x200txt.png")));
         bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_red1000x300txt.png")));
-        //procent_lbl.setText("10%");
     }
     private void setProtectionsts_pink()
     {
         lock_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/lock_pink124x200.png")));
-        circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_pink200x200.png")));
         bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_pink1000x300.png")));
     }
 
-    private void createLoadingCharts()
-    {
-        /* charts status labels */
-            {sts_lbl.setText("Loading ...");
-            sts_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl.setForeground(Color.white);
 
-            sts_lbl1.setText("Loading ...");
-            sts_lbl1.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl1.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl1.setForeground(Color.white);
-
-            sts_lbl2.setText("Loading ...");
-            sts_lbl2.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl2.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl2.setForeground(Color.white);
-
-            sts_lbl3.setText("Loading ...");
-            sts_lbl3.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl3.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl3.setForeground(Color.white);
-
-            sts_lbl4.setText("Loading ...");
-            sts_lbl4.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl4.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl4.setForeground(Color.white);
-
-            sts_lbl5.setText("Loading ...");
-            sts_lbl5.setIcon(new ImageIcon(getClass().getResource("/resources/refresh.png")));
-            sts_lbl5.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            sts_lbl5.setForeground(Color.white);}
-
-        //===== srcip_panel =====
-        { srcip_panel.setBackground(new Color(3, 21, 64));
-            srcip_panel.setLayout(null);
-            TitledBorder tb=new TitledBorder("Source IP");
-            tb.setTitleColor(Color.white);
-            tb.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            srcip_panel.setBorder(new CompoundBorder(
-                    tb,
-                    Borders.DLU21));
-            srcip_panel.add(sts_lbl);
-            sts_lbl.setBounds(50, 10, 150, 100);
-
-            srcip_panel.setBounds(250, 170, 280, 280);}
-
-        //===== dstip_panel =====
-        { dstip_panel.setBackground(new Color(3, 21, 64));
-            dstip_panel.setLayout(null);
-            TitledBorder tb1=new TitledBorder("Destination IP");
-            tb1.setTitleColor(Color.white);
-            tb1.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            dstip_panel.setBorder(new CompoundBorder(
-                    tb1,
-                    Borders.DLU21));
-            dstip_panel.add(sts_lbl1);
-            sts_lbl1.setBounds(50, 10, 150, 100);
-
-            dstip_panel.setBounds(250, 170, 280, 280);}
-
-        //===== protocol_panel =====
-        { protocol_panel.setBackground(new Color(3, 21, 64));
-            protocol_panel.setLayout(null);
-            TitledBorder tb2=new TitledBorder("Protocol");
-            tb2.setTitleColor(Color.white);
-            tb2.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            protocol_panel.setBorder(new CompoundBorder(
-                    tb2,
-                    Borders.DLU21));
-            protocol_panel.add(sts_lbl2);
-            sts_lbl2.setBounds(50, 10, 150, 100);
-
-            protocol_panel.setBounds(250, 170, 280, 280);}
-
-        //===== srcport_panel =====
-        { srcport_panel.setBackground(new Color(3, 21, 64));
-            srcport_panel.setLayout(null);
-            TitledBorder tb3=new TitledBorder("Source Port");
-            tb3.setTitleColor(Color.white);
-            tb3.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            srcport_panel.setBorder(new CompoundBorder(
-                    tb3,
-                    Borders.DLU21));
-            srcport_panel.add(sts_lbl3);
-            sts_lbl3.setBounds(50, 10, 150, 100);
-            srcport_panel.setBounds(770, 170, 280, 280);}
-
-        //===== dstport_panel =====
-        { dstport_panel.setBackground(new Color(3, 21, 64));
-            dstport_panel.setLayout(null);
-            TitledBorder tb4=new TitledBorder("Destination Port");
-            tb4.setTitleColor(Color.white);
-            tb4.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            dstport_panel.setBorder(new CompoundBorder(
-                    tb4,
-                    Borders.DLU21));
-            dstport_panel.add(sts_lbl4);
-            sts_lbl4.setBounds(50, 10, 150, 100);
-
-            dstport_panel.setBounds(770, 170, 280, 280);}
-
-        //===== timestamp_panel =====
-        {timestamp_panel.setBackground(new Color(3, 21, 64));
-            timestamp_panel.setLayout(null);
-            TitledBorder tb5=new TitledBorder("Timestamp");
-            tb5.setTitleColor(Color.white);
-            tb5.setTitleFont(new Font("JetBrains Mono", Font.BOLD, 14));
-            timestamp_panel.setBorder(new CompoundBorder(
-                    tb5,
-                    Borders.DLU21));
-            timestamp_panel.add(sts_lbl5);
-            sts_lbl5.setBounds(50, 10, 150, 100);
-
-            timestamp_panel.setBounds(770, 170, 280, 280);}
-    }
-    private void createActivityCharts()
-    {
-        String[] srcip_id=new String[srcip_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] srcport_id=new String[srcport_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] dstip_id=new String[dstip_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] dstport_id=new String[dstport_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] protocol_id=new String[protocol_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] timestamp_id=new String[timestamp_list.stream().distinct().collect(Collectors.toList()).size()];
-
-
-        double[] srcip_cnt=new double[srcip_list.stream().distinct().collect(Collectors.toList()).size()];
-        double[] srcport_cnt=new double[srcport_list.stream().distinct().collect(Collectors.toList()).size()];
-        double[] dstip_cnt=new double[dstip_list.stream().distinct().collect(Collectors.toList()).size()];
-        double[] dstport_cnt=new double[dstport_list.stream().distinct().collect(Collectors.toList()).size()];
-        double[] protocol_cnt=new double[protocol_list.stream().distinct().collect(Collectors.toList()).size()];
-        double[] timestamp_cnt=new double[timestamp_list.stream().distinct().collect(Collectors.toList()).size()];
-
-
-        String[] srcip_legend=new String[srcip_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] srcport_legend=new String[srcport_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] dstip_legend=new String[dstip_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] dstport_legend=new String[dstport_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] protocol_legend=new String[protocol_list.stream().distinct().collect(Collectors.toList()).size()];
-        String[] timestamp_legend=new String[timestamp_list.stream().distinct().collect(Collectors.toList()).size()];
-
-
-
-        Map<String, Long> frequencyMap =srcip_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        int cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            srcip_id[cnt]=Integer.toString(cnt+1);
-            srcip_cnt[cnt]=entry.getValue();
-            srcip_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-        frequencyMap =srcport_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            srcport_id[cnt]=Integer.toString(cnt+1);
-            srcport_cnt[cnt]=entry.getValue();
-            srcport_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-        frequencyMap =dstip_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            dstip_id[cnt]=Integer.toString(cnt+1);
-            dstip_cnt[cnt]=entry.getValue();
-            dstip_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-        frequencyMap =dstport_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            dstport_id[cnt]=Integer.toString(cnt+1);
-            dstport_cnt[cnt]=entry.getValue();
-            dstport_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-        frequencyMap =protocol_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            protocol_id[cnt]=Integer.toString(cnt+1);
-            protocol_cnt[cnt]=entry.getValue();
-            protocol_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-        frequencyMap =timestamp_list.stream().collect(Collectors.groupingBy(Function.identity(),Collectors.counting()));
-        cnt=0;
-        for (Map.Entry<String, Long> entry : frequencyMap.entrySet()) {
-            timestamp_id[cnt]=Integer.toString(cnt+1);
-            timestamp_cnt[cnt]=entry.getValue();
-            timestamp_legend[cnt]=entry.getKey();
-            cnt++;
-        }
-
-        srcip_chart=new BarChartPanel(srcip_cnt,srcip_id,"Source IP",141, 199, 240);
-        srcport_chart=new BarChartPanel(srcport_cnt,srcport_id,"Source Port",141, 199, 240);
-        dstip_chart=new BarChartPanel(dstip_cnt,dstip_id,"Destination IP",141, 199, 240);
-        dstport_chart=new BarChartPanel(dstport_cnt,dstport_id,"Destination Port",141, 199, 240);
-        protocol_chart=new BarChartPanel(protocol_cnt,protocol_id,"Protocol",141, 199, 240);
-        timestamp_chart=new BarChartPanel(timestamp_cnt,timestamp_id,"Timestamp IP",141, 199, 240);
-
-
-        TitledBorder tb1=new TitledBorder("Legend SOURCE IP");
-        tb1.setTitleColor(Color.white);
-        /*Create Source IP text*/
-        String tmp="<html>";
-
-        for(int i=0;i<srcip_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=srcip_id[i]+ ".&emsp;&emsp;" + srcip_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + srcip_cnt[i] +"<br/>";
-        }
-        tmp+="</html>";
-
-        srcip_leglbl.setBackground(new Color(41, 101, 196));
-        srcip_leglbl.setOpaque(true);
-        srcip_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        srcip_leglbl.setForeground(Color.white);
-        srcip_leglbl.setText(tmp);
-        srcip_leglbl.setBorder(new CompoundBorder(tb1,Borders.DLU21));
-        activity_panel.add(srcip_leglbl);
-        srcip_leglbl.setBounds(320, 55, 280, 500);
-        srcip_leglbl.setVisible(false);
-
-        TitledBorder tb2=new TitledBorder("Legend SOURCE PORT");
-        tb2.setTitleColor(Color.white);
-        tmp="<html>";
-
-        for(int i=0;i<srcport_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=srcport_id[i]+ ".&emsp;&emsp;" + srcport_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + srcport_cnt[i] + "<br/>";
-        }
-        tmp+="</html>";
-        srcport_leglbl.setBackground(new Color(41, 101, 196));
-        srcport_leglbl.setOpaque(true);
-        srcport_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        srcport_leglbl.setForeground(Color.white);
-        srcport_leglbl.setText(tmp);
-        srcport_leglbl.setBorder(new CompoundBorder(tb2,Borders.DLU21));
-        activity_panel.add(srcport_leglbl);
-        srcport_leglbl.setBounds(920, 55, 280, 500);
-        srcport_leglbl.setVisible(false);
-
-        TitledBorder tb3=new TitledBorder("Legend DESTINATION IP");
-        tb3.setTitleColor(Color.white);
-        tmp="<html>";
-
-        for(int i=0;i<dstip_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=dstip_id[i]+ ".&emsp;&emsp;" + dstip_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + dstip_cnt[i]+ "<br/>";
-        }
-        tmp+="</html>";
-
-        dstip_leglbl.setBackground(new Color(41, 101, 196));
-        dstip_leglbl.setOpaque(true);
-        dstip_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        dstip_leglbl.setForeground(Color.white);
-        dstip_leglbl.setText(tmp);
-        dstip_leglbl.setBorder(new CompoundBorder(tb3,Borders.DLU21));
-        activity_panel.add(dstip_leglbl);
-        dstip_leglbl.setBounds(320, 55, 280, 500);
-        dstip_leglbl.setVisible(false);
-
-
-        TitledBorder tb4=new TitledBorder("Legend DESTINATION PORT");
-        tb4.setTitleColor(Color.white);
-        tmp="<html>";
-
-        for(int i=0;i<dstport_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=dstport_id[i]+ ".&emsp;&emsp;" + dstport_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + dstport_cnt[i]+  "<br/>";
-        }
-        tmp+="</html>";
-        dstport_leglbl.setBackground(new Color(41, 101, 196));
-        dstport_leglbl.setOpaque(true);
-        dstport_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        dstport_leglbl.setForeground(Color.white);
-        dstport_leglbl.setText(tmp);
-        dstport_leglbl.setBorder(new CompoundBorder(tb4,Borders.DLU21));
-        activity_panel.add( dstport_leglbl);
-        dstport_leglbl.setBounds(920, 60, 280, 500);
-        dstport_leglbl.setVisible(false);
-
-        TitledBorder tb5=new TitledBorder("Legend PROTOCOL");
-        tb5.setTitleColor(Color.white);
-        tmp="<html>";
-
-        for(int i=0;i<protocol_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=protocol_id[i] + ".&emsp;&emsp;" + protocol_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + protocol_cnt[i]+  "<br/>";
-        }
-        tmp+="</html>";
-        protocol_leglbl.setBackground(new Color(41, 101, 196));
-        protocol_leglbl.setOpaque(true);
-        protocol_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        protocol_leglbl.setForeground(Color.white);
-        protocol_leglbl.setText(tmp);
-        protocol_leglbl.setBorder(new CompoundBorder(tb5,Borders.DLU21));
-        activity_panel.add(protocol_leglbl);
-        protocol_leglbl.setBounds(320, 55, 280, 500);
-        protocol_leglbl.setVisible(false);
-
-        TitledBorder tb6=new TitledBorder("Legend TIMESTAMP");
-        tb6.setTitleColor(Color.white);
-
-        tmp="<html>";
-
-        for(int i=0;i<timestamp_list.stream().distinct().collect(Collectors.toList()).size();i++)
-        {
-            tmp+=timestamp_id[i]+ ".&emsp;&emsp;" + timestamp_legend[i] + "&emsp;&emsp;-->&emsp;&emsp;" + timestamp_cnt[i]+  "<br/>";
-        }
-        tmp+="</html>";
-        timestamp_leglbl.setBackground(new Color(41, 101, 196));
-        timestamp_leglbl.setOpaque(true);
-        timestamp_leglbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-        timestamp_leglbl.setForeground(Color.white);
-        timestamp_leglbl.setText(tmp);
-        timestamp_leglbl.setBorder(new CompoundBorder(tb6,Borders.DLU21));
-        activity_panel.add(timestamp_leglbl);
-        timestamp_leglbl.setBounds(920, 55, 280, 500);
-        timestamp_leglbl.setVisible(false);
-
-
-
-
-    }
-
-    private void charttim_lblMouseExited(MouseEvent e) {
-        timestamp_leglbl.setVisible(false);
-    }
-
-    private void charttim_lblMouseEntered(MouseEvent e) {
-        timestamp_leglbl.setVisible(true);
-    }
-
-    private void chartprot_lblMouseExited(MouseEvent e) {
-        protocol_leglbl.setVisible(false);
-    }
-
-    private void chartprot_lblMouseEntered(MouseEvent e) {
-        protocol_leglbl.setVisible(true);
-    }
-
-    private void chartdp_lblMouseExited(MouseEvent e) {
-        dstport_leglbl.setVisible(false);
-    }
-
-    private void chartdp_lblMouseEntered(MouseEvent e) {
-        dstport_leglbl.setVisible(true);
-    }
-
-    private void chartdip_lblMouseExited(MouseEvent e) {
-        dstip_leglbl.setVisible(false);
-    }
-
-    private void chartdip_lblMouseEntered(MouseEvent e) {
-        dstip_leglbl.setVisible(true);
-    }
-
-    private void chartsp_lblMouseExited(MouseEvent e) {
-        srcport_leglbl.setVisible(false);
-    }
-
-    private void chartsp_lblMouseEntered(MouseEvent e) {
-        srcport_leglbl.setVisible(true);
-    }
-
-    private void chartsip_lblMouseExited(MouseEvent e) {
-        srcip_leglbl.setVisible(false);
-    }
-
-    private void chartsip_lblMouseEntered(MouseEvent e) {
-        srcip_leglbl.setVisible(true);
-    }
-
-    private void processActivityCharts(String header,List<String> flowStringList)
-    {
-        List<String> list = new ArrayList<String>();
-        for(int i=0 ; i<flowStringList.size();i++)
-          {
-            list= Arrays.asList((flowStringList.get(i)).split(","));
-            srcip_list.add(list.get(1));
-            dstip_list.add(list.get(3));
-            srcport_list.add(list.get(2));
-            dstport_list.add(list.get(4));
-            protocol_list.add(list.get(5));
-            timestamp_list.add(list.get(6).substring(0,10));
-          }
-
-    }
-
-    private void resetActivityCharts()
-    {
-        srcip_list.clear();
-        dstip_list.clear();
-        srcport_list.clear();
-        dstport_list.clear();
-        protocol_list.clear();
-        timestamp_list.clear();
-        chartData_ready=0;
-    }
     /* init GUI components */
     private void initComponents() throws IOException {
         //=== general ===
+
         String tableHeader="Flow ID,Src IP,Src Port,Dst IP,Dst Port,Protocol,Timestamp,Flow Duration";
         String[] arrayHeader = StringUtils.split(tableHeader, ",");
 
@@ -972,12 +465,6 @@ public class HomeFrame {
         protectionsts_panel=new JPanel();
 
         activity_panel=new JPanel();
-        srcip_panel=new JPanel();
-        dstip_panel=new JPanel();
-        dstport_panel=new JPanel();
-        srcport_panel=new JPanel();
-        protocol_panel=new JPanel();
-        timestamp_panel=new JPanel();
 
         //=== labels ===
         logo = new JLabel();
@@ -988,28 +475,11 @@ public class HomeFrame {
 
         bar_lbl=new JLabel();
         lock_lbl=new JLabel();
-        circle_lbl=new JLabel();
-
-        sts_lbl=new JLabel();
-        sts_lbl1=new JLabel();
-        sts_lbl2=new JLabel();
-        sts_lbl3=new JLabel();
-        sts_lbl4=new JLabel();
-        sts_lbl5=new JLabel();
-
-        srcip_leglbl=new JLabel();
-        srcport_leglbl=new JLabel();
-        dstip_leglbl=new JLabel();
-        dstport_leglbl=new JLabel();
-        protocol_leglbl=new JLabel();
-        timestamp_leglbl=new JLabel();
-
-        procent_lbl=new JLabel();
+        protection_lbl=new JLabel();
+        protectiontxt_lbl=new JLabel();
 
 
         //=== buttons ====
-        activitynext_btn=new JButton();
-        menuItem1 = new JButton();
         menuItem2 = new JButton();
         menuItem3 = new JButton();
         menuItem4 = new JButton();
@@ -1058,20 +528,7 @@ public class HomeFrame {
                 title.setBounds(50, 150, 400, 60);
                 menuPanel.add(title);
 
-                //---- menuItem1 ----
-               { menuItem1.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
-                menuItem1.setForeground(Color.white);
-                menuItem1.setBackground(new Color(0, 20, 48));
-                menuItem1.setIcon(new ImageIcon(getClass().getResource("/resources/protection_icon.png")));
-                menuItem1.setSelectedIcon(null);
-                menuItem1.setText("Protection");
-                menuItem1.setHorizontalAlignment(SwingConstants.LEFT);
-                menuItem1.setIconTextGap(30);
-                menuItem1.setPressedIcon(null);
-                menuItem1.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-                menuItem1.setMargin(new Insets(0, 15, 0, 0));
-                menuPanel.add(menuItem1);
-                menuItem1.setBounds(0, 215, 400, 40);}
+
 
                 //---- menuItem2 ----
                { menuItem2.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
@@ -1107,17 +564,17 @@ public class HomeFrame {
                 menuItem3.setMargin(new Insets(0, 15, 0, 0));
                 menuItem3.addMouseListener(new MouseAdapter() {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
+                   public void mouseClicked(MouseEvent e) {
                         try {
                             menuItem3MouseClicked(e);
-                        } catch (AWTException ex) {
-                            ex.printStackTrace();
+                       } catch (AWTException | SQLException ex) {
+                           ex.printStackTrace();
                         }
                     }
 
-                });
-                menuPanel.add(menuItem3);
-                menuItem3.setBounds(0, 315, 400, 40);}
+               });
+               menuPanel.add(menuItem3);
+               menuItem3.setBounds(0, 315, 400, 40);}
 
                 //---- menuItem4 ----
                 {menuItem4.setSelectedIcon(null);
@@ -1132,7 +589,11 @@ public class HomeFrame {
                 menuItem4.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        menuItem4MouseClicked(e);
+                        try {
+                            menuItem4MouseClicked(e);
+                        } catch (AWTException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 });
                 menuPanel.add(menuItem4);
@@ -1253,24 +714,40 @@ public class HomeFrame {
                 mainPanel.add(submenu2);
                 submenu2.setBounds(-10, 265, 260, 235);
 
+
                 //======== activity_panel ======
                 {
 
-                    activitynext_btn.setBackground(new Color(0, 0, 51));
-                    activitynext_btn.setOpaque(false);
-                    activitynext_btn.setBorder(null);
-                    activitynext_btn.setIcon(new ImageIcon(getClass().getResource("/resources/right-arrow.png")));
-                    activitynext_btn.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            activitynext_btnMouseClicked(e);
-                        }
-                    });
-                    activity_panel.add(activitynext_btn);
-                    activitynext_btn.setBounds(1300, 300, 64, 64);
-
                 activity_panel.setOpaque(false);
                 activity_panel.setLayout(null);
+
+                    String iptableHeader="Src IP,Dst IP,Src Port,Dst Port,Protocol,Flow Duration,Timestamp,Result";
+                    String[] iparrayHeader = StringUtils.split(iptableHeader, ",");
+                    ipscrollPane = new JScrollPane();
+                    iptableModel = new DefaultTableModel(iparrayHeader,0){
+                        @Override
+                        public boolean isCellEditable(int row, int column) {
+                            //all cells false
+                            return false;
+                        }
+                    };
+                    ipTable = new JTable(iptableModel);
+
+                    ipTable.setFocusable(false);
+                    ipTable.setIntercellSpacing(new java.awt.Dimension(0, 0));
+                    ipTable.setRowHeight(25);
+                    ipTable.setSelectionBackground(new java.awt.Color(232, 57, 95));
+                    ipTable.setShowVerticalLines(false);
+                    ipTable.getTableHeader().setReorderingAllowed(false);
+                    ipTable.getTableHeader().setBackground(new Color(0, 0, 51));
+                    ipTable.getTableHeader().setForeground(Color.white);
+                    ipTable.getTableHeader().setFont(new Font("JetBrains Mono", Font.BOLD, 16));
+                    ipTable.setFont(new Font("JetBrains Mono", Font.PLAIN, 14));
+                    ipscrollPane.setViewportView(ipTable);
+
+                    activity_panel.add(ipscrollPane);
+                    ipscrollPane.setBounds(50, 50, 1300, 600);
+
 
                     /*activity panel size*/
                     {
@@ -1352,22 +829,12 @@ public class HomeFrame {
                     notification_panel.setBorder(null);
                     notification_panel.setLayout(null);
 
-                    //notification_scrollpanel.setBackground(new Color(3, 211, 252));
-
                     notification_scrollpanel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
                     notification_scrollpanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
                     notification_scrollpanel.setViewportView(notification_panel);
                     notification_scrollpanel.setBorder(null);
                     mainPanel.add(notification_scrollpanel);
                     notification_scrollpanel.setBounds(50, 220, 1400, 700);
-
-
-                    notification_panel.add(add_notification("Notification demo",0));
-                    notification_panel.add(add_notification("Notification demo",1));
-                    notification_panel.add(add_notification("Notification demo",2));
-                    notification_panel.add(add_notification("Notification demo",3));
-                    notification_panel.add(add_notification("Notification demo",4));
-
 
                     /*notification panel size */
                     {
@@ -1390,7 +857,7 @@ public class HomeFrame {
                 //======== protectionsts_panel =======
 
                 {
-                    protectionsts_panel.setLayout(null);
+                protectionsts_panel.setLayout(null);
                 protectionsts_panel.setOpaque(false);
 
 
@@ -1398,22 +865,9 @@ public class HomeFrame {
                 lock_lbl.setBounds(120, 10, 124, 200);
                 protectionsts_panel.add(lock_lbl);
 
-//                    procent_lbl.setForeground(Color.black);
-//                    procent_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 65));
-//                    //procent_lbl.setText("100%");
-//                    protectionsts_panel.add(procent_lbl);
-//                    procent_lbl.setBounds(1116, -18, 270, 250);
-
-                circle_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/circle_green200x200txt.png")));
-                circle_lbl.setBounds(1100, 10, 400, 200);
-                protectionsts_panel.add(circle_lbl);
-
-
-
                 bar_lbl.setIcon(new ImageIcon(getClass().getResource("/resources/bar_green1000x300txt.png")));
                 bar_lbl.setBounds(180, -134, 1000, 500);
                 protectionsts_panel.add(bar_lbl);
-
 
                 }
                 mainPanel.add(protectionsts_panel);
@@ -1433,6 +887,21 @@ public class HomeFrame {
                     preferredSize.height += insets.bottom;
                     mainPanel.setMinimumSize(preferredSize);
                     mainPanel.setPreferredSize(preferredSize);
+                }
+
+
+                {   protectiontxt_lbl.setText("Protection level: ");
+                    protectiontxt_lbl.setForeground(new Color(125, 198, 227));
+                    protectiontxt_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 55));
+                    mainPanel.add(protectiontxt_lbl);
+                    protectiontxt_lbl.setBounds(360, 150, 455, 155);
+                }
+
+                {   protection_lbl.setText(Float.toString(protectionStatus));
+                    protection_lbl.setForeground(new Color(125, 198, 227));
+                    protection_lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 55));
+                    mainPanel.add(protection_lbl);
+                    protection_lbl.setBounds(795, 150, 155, 155);
                 }
             }
             mainFrameContentPane.add(mainPanel);
@@ -1460,105 +929,6 @@ public class HomeFrame {
 
     }
 
-    private void activitynext_btnMouseClicked(MouseEvent e) {
-        if(activityNext==2)
-            activityNext=0;
-        else
-            activityNext++;
-        if(chartData_ready==0) {
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_chart))
-                activity_panel.remove(srcip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_chart))
-                activity_panel.remove(dstip_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_chart))
-                activity_panel.remove(protocol_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_chart))
-                activity_panel.remove(srcport_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_chart))
-                activity_panel.remove(timestamp_chart);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_chart))
-                activity_panel.remove(dstport_chart);
-
-            if (activityNext == 0) {
-                timestamp_panel.setVisible(false);
-                protocol_panel.setVisible(false);
-                srcip_panel.setVisible(true);
-                srcport_panel.setVisible(true);
-            }
-            else if(activityNext==1)
-            {
-                srcip_panel.setVisible(false);
-                srcport_panel.setVisible(false);
-                dstip_panel.setVisible(true);
-                dstport_panel.setVisible(true);
-
-            }
-            else if(activityNext==2)
-            {
-                dstip_panel.setVisible(false);
-                dstport_panel.setVisible(false);
-                timestamp_panel.setVisible(true);
-                protocol_panel.setVisible(true);
-            }
-        }
-        else{
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcip_panel))
-                activity_panel.remove(srcip_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstip_panel))
-                activity_panel.remove(dstip_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(protocol_panel))
-                activity_panel.remove(protocol_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(srcport_panel))
-                activity_panel.remove(srcport_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(timestamp_panel))
-                activity_panel.remove(timestamp_panel);
-            if(Arrays.asList(activity_panel.getComponents()).contains(dstport_panel))
-                activity_panel.remove(dstport_panel);
-
-            if (activityNext == 0) {
-                timestamp_chart.setVisible(false);
-                timestamp_leglbl.setVisible(false);
-
-                protocol_chart.setVisible(false);
-                protocol_leglbl.setVisible(false);
-
-                srcip_chart.setVisible(true);
-                srcip_leglbl.setVisible(true);
-
-                srcport_chart.setVisible(true);
-                srcport_leglbl.setVisible(true);
-            }
-            else if(activityNext==1)
-            {
-                srcip_chart.setVisible(false);
-                srcip_leglbl.setVisible(false);
-
-                srcport_chart.setVisible(false);
-                srcport_leglbl.setVisible(false);
-
-                dstip_chart.setVisible(true);
-                dstip_leglbl.setVisible(true);
-
-                dstport_chart.setVisible(true);
-                dstport_leglbl.setVisible(true);
-
-            }
-            else if(activityNext==2)
-            {
-                dstip_chart.setVisible(false);
-                dstip_leglbl.setVisible(false);
-
-                dstport_chart.setVisible(false);
-                dstport_leglbl.setVisible(false);
-
-                timestamp_chart.setVisible(true);
-                timestamp_leglbl.setVisible(true);
-
-                protocol_chart.setVisible(true);
-                protocol_leglbl.setVisible(true);
-            }
-        }
-    }
 
 
 }

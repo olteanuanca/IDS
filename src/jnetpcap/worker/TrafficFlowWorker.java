@@ -3,6 +3,7 @@ package jnetpcap.worker;
 import jnetpcap.BasicFlow;
 import jnetpcap.FlowGenerator;
 import jnetpcap.PacketReader;
+import jnetpcap.manager.FlowMgr;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.nio.JMemory.Type;
 import org.jnetpcap.packet.PcapPacket;

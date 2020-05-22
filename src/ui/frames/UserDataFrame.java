@@ -42,6 +42,7 @@ public class UserDataFrame {
 
     //==== buttons ====
     private JButton applyChanges_btn;
+    private JButton goBack_btn;
 
     //==== labels ====
     private JLabel deviceName_lbl;
@@ -314,7 +315,7 @@ public class UserDataFrame {
 
         // ==== buttons ====
         applyChanges_btn = new JButton();
-
+        goBack_btn = new JButton();
         //==== text fields =====
         name_txtField = new JTextField();
         email_txtField = new JTextField();
@@ -368,7 +369,7 @@ public class UserDataFrame {
                 applyChanges_btn.setText("Apply changes");
                 applyChanges_btn.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
                 applyChanges_btn.setForeground(Color.white);
-                applyChanges_btn.setBackground(new Color(3, 211, 252, 35));
+                applyChanges_btn.setBackground(new Color(0, 20, 48));
                 applyChanges_btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -585,6 +586,22 @@ public class UserDataFrame {
                 }
                 mainFrameContentPane.add(mainPanel);
                 mainPanel.setBounds(0, 0, xSize, ySize);
+
+                //----goBack_btn ----
+                {
+                    goBack_btn.setText("< Go back");
+                    goBack_btn.setFont(new Font("JetBrains Mono", Font.BOLD, 16));
+                    goBack_btn.setForeground(Color.white);
+                    goBack_btn.setBackground(new Color(0, 20, 48));
+                    goBack_btn.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            goBack_btnMouseClicked(e);
+                        }
+                    });
+                    mainPanel.add(goBack_btn);
+                    goBack_btn.setBounds(xSize-1850, ySize-125, (int) (xSize/10.37), (int) (ySize/24));
+                }
             }
 
             //==== main frame size ====
@@ -608,7 +625,12 @@ public class UserDataFrame {
         }
     }
 
-       /* set info */
+    private void goBack_btnMouseClicked(MouseEvent e) {
+        mainFrame.setVisible(false); //you can't see me!
+        mainFrame.dispose(); //Destroy the JFrame object
+    }
+
+    /* set info */
     private void deviceName_lblMouseEntered(MouseEvent e) {
         String infotxt="<html>Your device name.<br/>Your selection will be saved for future uses.</html>";
         if(errtxt_lbl.isShowing())
